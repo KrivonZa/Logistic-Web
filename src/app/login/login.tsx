@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,11 +12,27 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { User, Lock, Eye, EyeOff, ChevronsRight } from "lucide-react";
 
 export default function Login() {
+  //constant for Library
+  const router = useRouter();
+
+  //constant for State
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    //Login handle simulator
+    if (username === "admin" && password === "123456") {
+      router.push("/admin/dashboard");
+    } else {
+      console.log("Incorrect!");
+    }
+  };
   return (
     <div className="min-h-screen flex sm:items-center justify-center sm:py-8 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Effects with Shapes */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-purple-500 to-tertiary">
+      <div className="absolute inset-0 bg-gradient-to-br from-subtle via-neutral to-tertiary">
         {/* Shapes */}
         <div className="absolute top-[-10%] left-[-10%] w-32 h-32 sm:w-48 sm:h-48 bg-white/10 rounded-full" />
         <div className="absolute bottom-[-15%] right-[-5%] w-40 h-40 sm:w-64 sm:h-64 bg-white/15 rotate-45" />
@@ -43,13 +61,13 @@ export default function Login() {
                 height={100}
               />
             </div>
-            <h1 className="text-3xl sm:text-4xl py-1 font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent text-center">
+            <h1 className="text-3xl sm:text-4xl py-1 font-bold bg-gradient-to-r from-primary to-[#00B4D8] bg-clip-text text-transparent text-center">
               Đăng nhập
             </h1>
           </CardHeader>
 
           <CardContent className="px-6 sm:px-8 space-y-6">
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleLogin}>
               {/* Username */}
               <div className="space-y-2">
                 <Label
@@ -65,7 +83,9 @@ export default function Login() {
                     id="username"
                     type="text"
                     placeholder="Nhập username"
-                    className="pl-12 h-12 sm:h-14 w-full rounded-xl border-2 border-indigo-200 focus:border-primary focus:ring-4 focus:ring-indigo-200/50 transition-all duration-300"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="pl-12 h-12 sm:h-14 w-full rounded-xl border-2 border-indigo-200 focus:border-primary focus:ring-4 focus:ring-indigo-200/50 transition-all duration-300 outline-none"
                   />
                 </div>
               </div>
@@ -85,7 +105,9 @@ export default function Login() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Nhập mật khẩu"
-                    className="pl-12 pr-12 h-12 sm:h-14 w-full rounded-xl border-2 border-indigo-200 focus:border-primary focus:ring-4 focus:ring-indigo-200/50 transition-all duration-300"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-12 pr-12 h-12 sm:h-14 w-full rounded-xl border-2 border-indigo-200 focus:border-primary focus:ring-4 focus:ring-indigo-200/50 transition-all duration-300 outline-none"
                   />
                   <button
                     type="button"
@@ -105,13 +127,13 @@ export default function Login() {
               <Button
                 size="lg"
                 type="submit"
-                className="relative overflow-hidden w-full h-12 sm:h-14 rounded-xl bg-gradient-to-r from-primary to-purple-500 text-white font-semibold shadow-lg group transition-all duration-300 [&_svg]:size-6"
+                className="relative overflow-hidden w-full h-12 sm:h-14 rounded-xl bg-gradient-to-r from-primary to-[#00B4D8] text-white font-semibold shadow-lg group transition-all duration-300 [&_svg]:size-6"
               >
                 <span className="flex items-center justify-center relative z-10">
                   Đăng nhập ngay
                   <ChevronsRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </span>
-                <span className="absolute inset-y-0 right-0 w-0 bg-gradient-to-r from-purple-500 to-tertiary z-0 transition-all duration-300 ease-in-out group-hover:w-full" />
+                <span className="absolute inset-y-0 right-0 w-0 bg-gradient-to-r from-[#00B4D8] to-[#0077B6] z-0 transition-all duration-300 ease-in-out group-hover:w-full" />
               </Button>
             </form>
 

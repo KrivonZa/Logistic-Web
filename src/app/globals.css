@@ -10,11 +10,12 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 238 48% 50.2%;
+    --primary: 210 100% 36%; /*Xanh nước đậm*/
     --primary-foreground: 210 40% 98%;
-    --secondary: 238 30% 70%;
+    --secondary: 20 100% 58.6%; /*Cam*/
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --tertiary: 20 100% 58.6%;
+    --subtle: 190 100% 42%; /*Xanh nước nhạt*/ 
+    --tertiary: 239 94% 19%; /*Xanh nước đậm hơn*/
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 96.1%;

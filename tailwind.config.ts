@@ -20,6 +20,9 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        subtle: {
+          DEFAULT: "hsl(var(--subtle))",
+        },
         tertiary: {
           DEFAULT: "hsl(var(--tertiary))",
         },
