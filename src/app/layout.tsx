@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Montserrat, Roboto } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+import ReduxProvider from "@/app/provider";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -32,7 +34,10 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} font-roboto ${montserrat.variable} font-montserrat ${geistSans.variable} antialiased`}
       >
-        <TooltipProvider delayDuration={100}>{children}</TooltipProvider>
+        <TooltipProvider delayDuration={100}>
+          <ReduxProvider>{children}</ReduxProvider>
+        </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );

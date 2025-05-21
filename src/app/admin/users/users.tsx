@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import isAuth from "@/components/isAuth";
 
-export default function Users() {
+const Users = () => {
   //constant for Library
 
   //constant for State
@@ -18,3 +19,5 @@ export default function Users() {
     </motion.div>
   );
 }
+
+export default isAuth(Users);

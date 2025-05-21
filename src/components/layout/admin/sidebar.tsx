@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Home, Users, Settings, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const sidebarVariants = {
   hidden: { x: -260, opacity: 0 },
@@ -12,6 +13,14 @@ const sidebarVariants = {
 };
 
 const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+  const pathname = usePathname();
+
+  const links = [
+    { href: "/admin/dashboard", icon: <Home className="h-5 w-5" />, label: "Báo cáo" },
+    { href: "/admin/users", icon: <Users className="h-5 w-5" />, label: "Users" },
+    { href: "/admin/settings", icon: <Settings className="h-5 w-5" />, label: "Settings" },
+  ];
+
   return (
     <motion.aside
       variants={sidebarVariants}
@@ -27,7 +36,6 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           alt="Flipship White Logo"
           width={150}
           height={150}
-          // className="sm:block hidden"
           className=""
         />
         <X
@@ -36,27 +44,21 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
         />
       </div>
       <nav className="space-y-2">
-        <Link
-          href="/admin/dashboard"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary text-white transition"
-        >
-          <Home className="h-5 w-5" />
-          <span className="text-sm font-medium">Dashboard</span>
-        </Link>
-        <Link
-          href="/admin/users"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary text-white transition"
-        >
-          <Users className="h-5 w-5" />
-          <span className="text-sm font-medium">Users</span>
-        </Link>
-        <Link
-          href="/admin/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary text-white transition"
-        >
-          <Settings className="h-5 w-5" />
-          <span className="text-sm font-medium">Settings</span>
-        </Link>
+        {links.map(({ href, icon, label }) => {
+          const isActive = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-white transition duration-200 ${
+                isActive ? "bg-secondary" : "hover:bg-secondary/80"
+              }`}
+            >
+              {icon}
+              <span className="text-sm font-medium">{label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </motion.aside>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Menu, Bell, ChevronDown } from "lucide-react";
 import {
@@ -16,6 +17,14 @@ import {
 } from "@/components/ui/tooltip";
 
 const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+  const router = useRouter();
+
+  //Log out
+  const handleLogout = () => {
+    sessionStorage.clear();
+    router.replace("/login");
+  };
+
   return (
     <motion.header
       initial={{ y: -50, opacity: 0 }}
@@ -69,7 +78,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
             <DropdownMenuItem className="block sm:hidden">
               Thông báo
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500">
+            <DropdownMenuItem className="text-red-500" onClick={handleLogout}>
               Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>

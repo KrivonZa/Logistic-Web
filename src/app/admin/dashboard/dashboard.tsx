@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import isAuth from "@/components/isAuth";
 
-export default function Dashboard() {
+const Dashboard = () => {
   //constant for Library
 
   //constant for State
@@ -17,4 +18,6 @@ export default function Dashboard() {
       <div>Ahihi</div>
     </motion.div>
   );
-}
+};
+
+export default isAuth(Dashboard, ["Company", "Coordinator", "Staff", "Admin"]);
