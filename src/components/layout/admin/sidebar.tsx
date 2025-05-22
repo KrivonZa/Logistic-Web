@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Home, Users, Settings, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { Home, Users, Settings, ChevronDown, ChevronUp, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const sidebarVariants = {
@@ -12,14 +13,48 @@ const sidebarVariants = {
   exit: { x: -260, opacity: 0 },
 };
 
+const dropdownVariants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: { opacity: 1, height: "auto" },
+  exit: { opacity: 0, height: 0 },
+};
+
+const links = [
+  {
+    href: "/admin/dashboard",
+    icon: <Home className="h-5 w-5" />,
+    label: "Báo cáo",
+  },
+  {
+    icon: <Users className="h-5 w-5" />,
+    label: "Người dùng",
+    children: [
+      { href: "/admin/users/customers", label: "Khách hàng" },
+      { href: "/admin/users/companies", label: "Công ty" },
+      { href: "/admin/users/coordinators", label: "Nhân viên Công ty" },
+      { href: "/admin/users/drivers", label: "Tài xế" },
+      { href: "/admin/users/staffs", label: "Nhân viên Nền tảng" },
+    ],
+  },
+  {
+    href: "/admin/settings",
+    icon: <Settings className="h-5 w-5" />,
+    label: "Settings",
+  },
+];
+
 const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const pathname = usePathname();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(() => {
+    const match = links.find((link) =>
+      link.children?.some((child) => pathname.startsWith(child.href))
+    );
+    return match?.label || null;
+  });
 
-  const links = [
-    { href: "/admin/dashboard", icon: <Home className="h-5 w-5" />, label: "Báo cáo" },
-    { href: "/admin/users", icon: <Users className="h-5 w-5" />, label: "Users" },
-    { href: "/admin/settings", icon: <Settings className="h-5 w-5" />, label: "Settings" },
-  ];
+  const handleToggle = (label: string) => {
+    setOpenDropdown((prev) => (prev === label ? null : label));
+  };
 
   return (
     <motion.aside
@@ -30,33 +65,91 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       transition={{ duration: 0.4, ease: "easeInOut" }}
       className="w-full sm:w-64 h-screen bg-primary border-r p-4 space-y-6 shadow-sm absolute top-0 left-0 z-40"
     >
+      {/* Logo + Close */}
       <div className="flex items-center justify-between">
         <Image
           src="/logo/white_logo_small.png"
           alt="Flipship White Logo"
           width={150}
           height={150}
-          className=""
         />
         <X
           className="h-10 w-10 text-white hover:bg-blue-400/30 rounded-full p-2 duration-200 active:scale-90 transition ease-in-out cursor-pointer block sm:hidden"
           onClick={toggleSidebar}
         />
       </div>
+
+      {/* Navigation */}
       <nav className="space-y-2">
-        {links.map(({ href, icon, label }) => {
-          const isActive = pathname === href;
+        {links.map((link) => {
+          if (!link.children) {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-white transition duration-200 ${
+                  isActive ? "bg-secondary" : "hover:bg-secondary/80"
+                }`}
+              >
+                {link.icon}
+                <span className="text-sm font-medium">{link.label}</span>
+              </Link>
+            );
+          }
+
+          const isOpen = openDropdown === link.label;
+          const isChildActive = link.children.some((child) =>
+            pathname.startsWith(child.href)
+          );
+
           return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-white transition duration-200 ${
-                isActive ? "bg-secondary" : "hover:bg-secondary/80"
-              }`}
-            >
-              {icon}
-              <span className="text-sm font-medium">{label}</span>
-            </Link>
+            <div key={link.label}>
+              <button
+                onClick={() => handleToggle(link.label)}
+                className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-white transition duration-200 ${
+                  isChildActive ? "bg-secondary" : "hover:bg-secondary/80"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {link.icon}
+                  <span className="text-sm font-medium">{link.label}</span>
+                </div>
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    variants={dropdownVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    transition={{ duration: 0.3 }}
+                    className="mt-2 ml-6 flex flex-col space-y-2 overflow-hidden"
+                  >
+                    {link.children.map((child) => {
+                      const isActive = pathname === child.href;
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`block text-sm px-3 py-2 rounded-lg text-white transition duration-200 hover:bg-secondary/60 ${
+                            isActive ? "bg-secondary" : ""
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           );
         })}
       </nav>

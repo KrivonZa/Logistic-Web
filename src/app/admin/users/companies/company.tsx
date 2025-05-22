@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import isAuth from "@/components/isAuth";
 
-const Dashboard = () => {
+const Companies = () => {
   //constant for Library
 
   //constant for State
@@ -15,9 +15,9 @@ const Dashboard = () => {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="flex sm:items-center justify-center sm:py-8 sm:px-6 lg:px-8 relative overflow-hidden"
     >
-      <div>Ahihi</div>
+      <div>Company</div>
     </motion.div>
   );
 };
 
-export default isAuth(Dashboard, ["Admin"]);
+export default isAuth(Companies, ["Admin"]);

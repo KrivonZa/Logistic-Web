@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import isAuth from "@/components/isAuth";
 
-const Users = () => {
+const Staffs = () => {
   //constant for Library
 
   //constant for State
@@ -15,9 +15,9 @@ const Users = () => {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="flex sm:items-center justify-center sm:py-8 sm:px-6 lg:px-8 relative overflow-hidden"
     >
-      <div>Users</div>
+      <div>Staffs</div>
     </motion.div>
   );
-}
+};
 
-export default isAuth(Users);
+export default isAuth(Staffs, ["Admin"]);

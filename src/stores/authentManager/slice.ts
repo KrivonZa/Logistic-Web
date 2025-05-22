@@ -1,3 +1,4 @@
+// slice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { login } from "./thunk";
 import { toast } from "sonner";
@@ -19,7 +20,7 @@ export const manageAuthenSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.loading = true;
       })
-      .addCase(login.fulfilled, (state) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         toast.success("Đăng nhập thành công", {
           style: {
@@ -28,9 +29,14 @@ export const manageAuthenSlice = createSlice({
           },
         });
       })
-      .addCase(login.rejected, (state) => {
+      .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        toast.error("Tài khoản không hợp lệ", {
+
+        const message = action.payload === "Unauthenticated or unauthorized"
+          ? "Bạn không có quyền truy cập vào trang này"
+          : "Email hoặc mật khẩu không đúng";
+
+        toast.error(message, {
           style: {
             backgroundColor: "#ff0033",
             color: "#fff",
