@@ -37,9 +37,9 @@ const links = [
     ],
   },
   {
-    href: "/admin/settings",
+    href: "/settings",
     icon: <Settings className="h-5 w-5" />,
-    label: "Settings",
+    label: "Cài đặt",
   },
 ];
 
