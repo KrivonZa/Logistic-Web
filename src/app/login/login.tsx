@@ -24,8 +24,7 @@ const loginSchema = z.object({
     .email("Email không hợp lệ"),
   password: z
     .string({ required_error: "Vui lòng nhập mật khẩu" })
-    .nonempty("Vui lòng nhập mật khẩu")
-    .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    .nonempty("Vui lòng nhập mật khẩu"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
