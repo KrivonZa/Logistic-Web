@@ -51,6 +51,10 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     router.push("/notification");
   };
 
+  const handleProfile = () => {
+    router.push("/profile");
+  };
+
   return (
     <motion.header
       initial={{ y: -50, opacity: 0 }}
@@ -103,7 +107,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
             </TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Thông tin cá nhân</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleProfile}>Thông tin cá nhân</DropdownMenuItem>
             <DropdownMenuItem className="block sm:hidden">
               Thông báo
             </DropdownMenuItem>
