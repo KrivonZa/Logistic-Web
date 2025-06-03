@@ -16,6 +16,7 @@ import { User, Lock, Eye, EyeOff, ChevronsRight } from "lucide-react";
 import { login } from "@/stores/authentManager/thunk";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppDispatch } from "@/stores";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z
@@ -46,9 +47,40 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await dispatch(login(data)).unwrap();
-      router.push("/admin/dashboard");
-    } catch (err) {}
+      const result = await dispatch(login(data)).unwrap();
+      const role = result?.data?.role;
+      console.log(role);
+
+      switch (role) {
+        case "Admin":
+          router.push("/admin/dashboard");
+          break;
+        case "Company":
+          router.push("/company/dashboard");
+          break;
+        case "Coordinator":
+          router.push("/coordinator/dashboard");
+          break;
+        case "Staff":
+          router.push("/staff/dashboard");
+          break;
+        default:
+          toast.error("Tài khoản không có quyền truy cập", {
+            style: {
+              backgroundColor: "#ff0033",
+              color: "#fff",
+            },
+          });
+          break;
+      }
+    } catch (err) {
+      toast.error("Đã có lỗi xảy ra khi đăng nhập", {
+        style: {
+          backgroundColor: "#ff0033",
+          color: "#fff",
+        },
+      });
+    }
   };
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Menu, Bell, ChevronDown } from "lucide-react";
@@ -18,6 +19,27 @@ import {
 
 const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const router = useRouter();
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        // Scroll down
+        setShowHeader(false);
+      } else {
+        // Scroll up
+        setShowHeader(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   //Log out
   const handleLogout = () => {
@@ -25,12 +47,16 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     router.replace("/login");
   };
 
+  const handleNotification = () => {
+    router.push("/notification");
+  };
+
   return (
     <motion.header
       initial={{ y: -50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      animate={{ y: showHeader ? 0 : -80, opacity: showHeader ? 1 : 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="h-16 w-full flex items-center justify-between px-6 border-b shadow-sm bg-white"
+      className="fixed top-0 sm:left-64 right-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white"
     >
       {/* Sidebar toggle */}
       <div className="flex items-center gap-2 text-sm sm:text-xl font-semibold text-gray-800">
@@ -46,7 +72,10 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
         {/* Notification icon */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Bell className="h-10 w-10 text-primary hover:bg-blue-400/30 rounded-full p-2 duration-200 active:scale-90 transition ease-in-out cursor-pointer hidden sm:block" />
+            <Bell
+              className="h-10 w-10 text-primary hover:bg-blue-400/30 rounded-full p-2 duration-200 active:scale-90 transition ease-in-out cursor-pointer hidden sm:block"
+              onClick={handleNotification}
+            />
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <p>Thông báo</p>

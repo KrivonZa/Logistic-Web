@@ -3,8 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import { Home, Users, Settings, ChevronDown, ChevronUp, X } from "lucide-react";
+import { useState, ReactNode } from "react";
+import {
+  Home,
+  Users,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  X,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const sidebarVariants = {
@@ -19,32 +26,83 @@ const dropdownVariants = {
   exit: { opacity: 0, height: 0 },
 };
 
-const links = [
-  {
-    href: "/admin/dashboard",
-    icon: <Home className="h-5 w-5" />,
-    label: "Báo cáo",
-  },
-  {
-    icon: <Users className="h-5 w-5" />,
-    label: "Người dùng",
-    children: [
-      { href: "/admin/users/customers", label: "Khách hàng" },
-      { href: "/admin/users/companies", label: "Công ty" },
-      { href: "/admin/users/coordinators", label: "Nhân viên Công ty" },
-      { href: "/admin/users/drivers", label: "Tài xế" },
-      { href: "/admin/users/staffs", label: "Nhân viên Nền tảng" },
-    ],
-  },
-  {
-    href: "/settings",
-    icon: <Settings className="h-5 w-5" />,
-    label: "Cài đặt",
-  },
-];
+type SidebarLink = {
+  href?: string;
+  icon: ReactNode;
+  label: string;
+  children?: { href: string; label: string }[];
+};
 
-const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+const sidebarLinks: Record<string, SidebarLink[]> = {
+  Admin: [
+    {
+      href: "/admin/dashboard",
+      icon: <Home className="h-5 w-5" />,
+      label: "Báo cáo",
+    },
+    {
+      icon: <Users className="h-5 w-5" />,
+      label: "Người dùng",
+      children: [
+        { href: "/admin/users/customers", label: "Khách hàng" },
+        { href: "/admin/users/companies", label: "Công ty" },
+        { href: "/admin/users/coordinators", label: "Nhân viên Công ty" },
+        { href: "/admin/users/drivers", label: "Tài xế" },
+        { href: "/admin/users/staffs", label: "Nhân viên Nền tảng" },
+      ],
+    },
+    {
+      href: "/settings",
+      icon: <Settings className="h-5 w-5" />,
+      label: "Cài đặt",
+    },
+  ],
+  Company: [
+    {
+      href: "/company/dashboard",
+      icon: <Home className="h-5 w-5" />,
+      label: "Trang chủ",
+    },
+    {
+      icon: <Users className="h-5 w-5" />,
+      label: "Quản lý",
+      children: [
+        { href: "/company/drivers", label: "Tài xế" },
+        { href: "/company/staffs", label: "Nhân viên" },
+      ],
+    },
+  ],
+  Coordinator: [
+    {
+      href: "/coordinator/dashboard",
+      icon: <Home className="h-5 w-5" />,
+      label: "Trang chủ",
+    },
+    {
+      href: "/coordinator/drivers",
+      icon: <Users className="h-5 w-5" />,
+      label: "Tài xế",
+    },
+  ],
+  Staff: [
+    {
+      href: "/staff/dashboard",
+      icon: <Home className="h-5 w-5" />,
+      label: "Trang chủ",
+    },
+  ],
+};
+
+const Sidebar = ({
+  toggleSidebar,
+  role,
+}: {
+  toggleSidebar: () => void;
+  role: keyof typeof sidebarLinks;
+}) => {
   const pathname = usePathname();
+  const links = sidebarLinks[role] || [];
+
   const [openDropdown, setOpenDropdown] = useState<string | null>(() => {
     const match = links.find((link) =>
       link.children?.some((child) => pathname.startsWith(child.href))
@@ -63,9 +121,8 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       animate="visible"
       exit="exit"
       transition={{ duration: 0.4, ease: "easeInOut" }}
-      className="w-full sm:w-64 h-screen bg-primary border-r p-4 space-y-6 shadow-sm absolute top-0 left-0 z-40"
+      className="w-full sm:w-64 min-h-screen bg-primary border-r p-4 space-y-6 shadow-sm fixed top-0 left-0 z-40"
     >
-      {/* Logo + Close */}
       <div className="flex items-center justify-between">
         <Image
           src="/logo/white_logo_small.png"
@@ -79,10 +136,11 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
         />
       </div>
 
-      {/* Navigation */}
       <nav className="space-y-2">
         {links.map((link) => {
-          if (!link.children) {
+          const isDropdown = !!link.children;
+
+          if (!isDropdown && link.href) {
             const isActive = pathname === link.href;
             return (
               <Link
@@ -99,7 +157,7 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           }
 
           const isOpen = openDropdown === link.label;
-          const isChildActive = link.children.some((child) =>
+          const isChildActive = link.children?.some((child) =>
             pathname.startsWith(child.href)
           );
 
@@ -121,7 +179,6 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
                   <ChevronDown className="h-4 w-4" />
                 )}
               </button>
-
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div
@@ -132,7 +189,7 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
                     transition={{ duration: 0.3 }}
                     className="mt-2 ml-6 flex flex-col space-y-2 overflow-hidden"
                   >
-                    {link.children.map((child) => {
+                    {link.children?.map((child) => {
                       const isActive = pathname === child.href;
                       return (
                         <Link

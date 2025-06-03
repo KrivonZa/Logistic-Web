@@ -8,15 +8,18 @@ import clsx from "clsx";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
-  //Nhận diện kích cỡ màn hình để điều chỉnh sidebar
   useEffect(() => {
+    const storedRole = sessionStorage.getItem("role");
+    if (storedRole) setRole(storedRole);
+
     const mediaQuery = window.matchMedia("(min-width: 640px)");
     const handleChange = () => {
       setIsSidebarOpen(mediaQuery.matches);
     };
 
-    handleChange(); // Gọi lúc đầu khi component mount
+    handleChange();
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
@@ -26,12 +29,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-screen">
       <AnimatePresence>
-        {isSidebarOpen && (
-          <Sidebar key="sidebar" toggleSidebar={toggleSidebar} />
+        {isSidebarOpen && role && (
+          <Sidebar key="sidebar" toggleSidebar={toggleSidebar} role={role as any} />
         )}
       </AnimatePresence>
 
-      {/* Khu vực còn lại */}
       <div
         className={clsx(
           "transition-all duration-300",
@@ -39,7 +41,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         )}
       >
         <Header toggleSidebar={toggleSidebar} />
-        <main className="p-6">{children}</main>
+        <main className="p-6 pt-20">{children}</main>
       </div>
     </div>
   );
