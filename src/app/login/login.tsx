@@ -49,7 +49,6 @@ export default function Login() {
     try {
       const result = await dispatch(login(data)).unwrap();
       const role = result?.data?.role;
-      console.log(role);
 
       switch (role) {
         case "Admin":

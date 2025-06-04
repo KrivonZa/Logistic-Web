@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { Menu, Bell, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
@@ -16,8 +15,15 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import clsx from "clsx";
 
-const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+const Header = ({
+  toggleSidebar,
+  isSidebarOpen,
+}: {
+  toggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}) => {
   const router = useRouter();
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -27,10 +33,8 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        // Scroll down
         setShowHeader(false);
       } else {
-        // Scroll up
         setShowHeader(true);
       }
 
@@ -41,7 +45,6 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  //Log out
   const handleLogout = () => {
     sessionStorage.clear();
     router.replace("/login");
@@ -56,11 +59,13 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   };
 
   return (
-    <motion.header
-      initial={{ y: -50, opacity: 0 }}
-      animate={{ y: showHeader ? 0 : -80, opacity: showHeader ? 1 : 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed top-0 sm:left-64 right-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white/90 z-10"
+    <header
+      className={clsx(
+        "fixed top-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white/90 z-10",
+        "transition-all duration-300", // Animation mượt mà
+        isSidebarOpen ? "sm:left-64 right-0" : "left-0 right-0", // Chỉ animate left ở sm trở lên
+        showHeader ? "top-0 opacity-100" : "-top-20 opacity-0" // Hiệu ứng cuộn dọc
+      )}
     >
       {/* Sidebar toggle */}
       <div className="flex items-center gap-2 text-sm sm:text-xl font-semibold text-gray-800">
@@ -73,7 +78,6 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
       {/* Notification + User */}
       <div className="flex items-center gap-6">
-        {/* Notification icon */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Bell
@@ -86,14 +90,11 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           </TooltipContent>
         </Tooltip>
 
-        {/* User dropdown */}
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger className="flex items-center gap-4 focus:outline-none hover:bg-blue-400/20 duration-200 px-2 py-1 rounded">
                 <Avatar className="h-8 w-8">
-                  {/*Avatar */}
-                  {/* <AvatarImage src="/avatar.png" alt="@admin" /> */}
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
                 <span className="font-medium text-gray-700 hidden sm:inline">
@@ -117,7 +118,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </motion.header>
+    </header>
   );
 };
 
