@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type UserStatus = "active" | "inactive";
+type UserStatus = "Active" | "Inactive";
 
 interface User {
   id: string;
@@ -39,20 +39,26 @@ const allUsers: User[] = Array.from({ length: 20 }).map((_, i) => ({
   avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
   fullName: `Người Dùng ${i + 1}`,
   email: `user${i + 1}@example.com`,
-  status: i % 2 === 0 ? "active" : "inactive",
+  status: i % 2 === 0 ? "Active" : "Inactive",
 }));
 
 const STATUSES = [
   { label: "Tất cả", value: "all" },
-  { label: "Đang hoạt động", value: "active" },
-  { label: "Ngưng hoạt động", value: "inactive" },
+  { label: "Đang hoạt động", value: "Active" },
+  { label: "Ngưng hoạt động", value: "Inactive" },
 ];
 
-function getBadgeColor(status: UserStatus | string): "destructive" | "secondary" | "default" {
+function getStatusLabel(status: UserStatus) {
+  return status === "Active" ? "Đang hoạt động" : "Ngưng hoạt động";
+}
+
+function getBadgeColor(
+  status: UserStatus | string
+): "destructive" | "secondary" | "default" {
   switch (status) {
-    case "active":
-      return "default"; // đổi "success" thành "default"
-    case "inactive":
+    case "Active":
+      return "default";
+    case "Inactive":
       return "destructive";
     default:
       return "secondary";
@@ -67,9 +73,10 @@ const Customers = () => {
   const [page, setPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const filteredUsers = statusFilter === "all"
-    ? allUsers
-    : allUsers.filter((user) => user.status === statusFilter);
+  const filteredUsers =
+    statusFilter === "all"
+      ? allUsers
+      : allUsers.filter((user) => user.status === statusFilter);
 
   const pageSize = 10;
   const pageCount = Math.ceil(filteredUsers.length / pageSize);
@@ -119,6 +126,7 @@ const Customers = () => {
               <TableHead>Email</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Hành động</TableHead>
+              <TableHead>Khác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -140,7 +148,9 @@ const Customers = () => {
                   <TableCell>{fullName}</TableCell>
                   <TableCell>{email}</TableCell>
                   <TableCell>
-                    <Badge variant={getBadgeColor(status)}>{status}</Badge>
+                    <Badge variant={getBadgeColor(status)}>
+                      {getStatusLabel(status)}
+                    </Badge>
                   </TableCell>
                   <TableCell className="flex gap-2">
                     <Button variant="outline" size="sm">
@@ -148,6 +158,11 @@ const Customers = () => {
                     </Button>
                     <Button variant="destructive" size="sm">
                       Xóa
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm">
+                      Chi tiết
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -173,17 +188,22 @@ const Customers = () => {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg truncate">{fullName}</h3>
-                <p className="text-sm text-muted-foreground truncate">{email}</p>
+                <p className="text-sm text-muted-foreground truncate">
+                  {email}
+                </p>
                 <Badge className="mt-2" variant={getBadgeColor(status)}>
-                  {status}
+                  {getStatusLabel(status)}
                 </Badge>
               </div>
-              <div className="flex gap-2 mt-4 sm:mt-0">
+              <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
+                <Button variant="outline" size="sm" className="w-20">
+                  Chi tiết
+                </Button>
                 <Button variant="outline" size="sm" className="w-20">
                   Sửa
                 </Button>
                 <Button variant="destructive" size="sm" className="w-20">
-                  Xóa
+                  Chặn
                 </Button>
               </div>
             </div>

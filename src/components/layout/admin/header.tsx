@@ -60,7 +60,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: showHeader ? 0 : -80, opacity: showHeader ? 1 : 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed top-0 sm:left-64 right-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white"
+      className="fixed top-0 sm:left-64 right-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white/90 z-10"
     >
       {/* Sidebar toggle */}
       <div className="flex items-center gap-2 text-sm sm:text-xl font-semibold text-gray-800">
