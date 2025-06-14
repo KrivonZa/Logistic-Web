@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  MapPinned,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -70,6 +71,11 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
         { href: "/company/drivers", label: "Tài xế" },
         { href: "/company/staffs", label: "Nhân viên" },
       ],
+    },
+    {
+      href: "/company/route",
+      icon: <MapPinned className="h-5 w-5" />,
+      label: "Quản lý tuyến đường",
     },
   ],
   Coordinator: [

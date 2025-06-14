@@ -450,4 +450,4 @@ const Dashboard = () => {
   );
 };
 
-export default isAuth(Dashboard, ["Admin", "Staff", "Company", "Coordinator"]);
+export default isAuth(Dashboard, ["Admin"]);

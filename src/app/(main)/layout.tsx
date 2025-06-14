@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "@/components/layout/admin/sidebar";
+import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/admin/header";
 import { ReactNode, useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -30,7 +30,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="relative min-h-screen">
       <AnimatePresence>
         {isSidebarOpen && role && (
-          <Sidebar key="sidebar" toggleSidebar={toggleSidebar} role={role as any} />
+          <Sidebar
+            key="sidebar"
+            toggleSidebar={toggleSidebar}
+            role={role as any}
+          />
         )}
       </AnimatePresence>
 
@@ -40,7 +44,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           isSidebarOpen ? "sm:ml-64 ml-0" : "ml-0"
         )}
       >
-        <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen}/>
+        <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
         <main className="p-6 pt-20">{children}</main>
       </div>
     </div>
