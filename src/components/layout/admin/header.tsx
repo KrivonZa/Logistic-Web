@@ -16,6 +16,9 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import clsx from "clsx";
+import { profile } from "@/stores/accountManager/thunk";
+import { useAccount } from "@/hooks/useAccount";
+import { useAppDispatch } from "@/stores";
 
 const Header = ({
   toggleSidebar,
@@ -25,8 +28,14 @@ const Header = ({
   isSidebarOpen: boolean;
 }) => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading, info } = useAccount();
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    dispatch(profile());
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,20 +104,23 @@ const Header = ({
             <TooltipTrigger asChild>
               <DropdownMenuTrigger className="flex items-center gap-4 focus:outline-none hover:bg-blue-400/20 duration-200 px-2 py-1 rounded">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>AD</AvatarFallback>
+                  <AvatarImage src={info?.avatar} alt={info?.fullName} />
+                  <AvatarFallback>{info?.fullName?.[0] ?? "U"}</AvatarFallback>
                 </Avatar>
                 <span className="font-medium text-gray-700 hidden sm:inline">
-                  Đặng Văn Lâm
+                  {info?.fullName}
                 </span>
                 <ChevronDown className="h-4 w-4 text-gray-500" />
               </DropdownMenuTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>Đặng Văn Lâm</p>
+              <p>{info?.fullName}</p>
             </TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleProfile}>Thông tin cá nhân</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleProfile}>
+              Thông tin cá nhân
+            </DropdownMenuItem>
             <DropdownMenuItem className="block sm:hidden">
               Thông báo
             </DropdownMenuItem>

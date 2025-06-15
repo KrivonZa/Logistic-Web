@@ -1,4 +1,3 @@
-// slice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { login, googleLogin } from "./thunk";
 import { toast } from "sonner";

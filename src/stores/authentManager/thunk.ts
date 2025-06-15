@@ -1,4 +1,3 @@
-// thunk.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageAuthen } from "@/services/manageAuthen";
 import { Login } from "@/types/account";

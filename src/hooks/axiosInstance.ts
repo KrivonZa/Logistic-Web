@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 
 interface AuthContext {
-  setUser: (user: any) => void; // Có thể thay `any` bằng kiểu user cụ thể nếu bạn có
+  setUser: (user: any) => void;
   router: {
     push: (path: string) => void;
   };
@@ -19,6 +19,19 @@ const api: AxiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem("authToken") : null;
+
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 api.interceptors.response.use(
   (response) => response,
