@@ -35,7 +35,6 @@ export default function FCMListener() {
 
         if (token) {
           console.log("✅ FCM Token:", token);
-          alert("FCM Token:\n" + token);
         }
 
         onMessage(messaging, (payload) => {

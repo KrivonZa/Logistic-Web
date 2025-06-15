@@ -12,6 +12,7 @@ import {
   ChevronUp,
   X,
   MapPinned,
+  Bell,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -99,6 +100,19 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
   ],
 };
 
+const commonLinks: SidebarLink[] = [
+  {
+    href: "/notification",
+    icon: <Bell className="h-5 w-5" />,
+    label: "Thông báo",
+  },
+  {
+    href: "/settings",
+    icon: <Settings className="h-5 w-5" />,
+    label: "Cài đặt",
+  },
+];
+
 const Sidebar = ({
   toggleSidebar,
   role,
@@ -107,7 +121,7 @@ const Sidebar = ({
   role: keyof typeof sidebarLinks;
 }) => {
   const pathname = usePathname();
-  const links = sidebarLinks[role] || [];
+  const links = [...(sidebarLinks[role] || []), ...commonLinks];
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(() => {
     const match = links.find((link) =>

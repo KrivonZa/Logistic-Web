@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Profile",
-  description: "Profile detail of user",
+  title: "Thông tin cá nhân",
+  description: "Thông tin cá nhân của người dùng",
 };
 
 import Profile from "./profile";
