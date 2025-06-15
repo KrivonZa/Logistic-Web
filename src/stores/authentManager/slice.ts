@@ -1,6 +1,6 @@
 // slice.ts
 import { createSlice } from "@reduxjs/toolkit";
-import { login } from "./thunk";
+import { login, googleLogin } from "./thunk";
 import { toast } from "sonner";
 
 type stateType = {
@@ -37,6 +37,27 @@ export const manageAuthenSlice = createSlice({
           : "Email hoặc mật khẩu không đúng";
 
         toast.error(message, {
+          style: {
+            backgroundColor: "#ff0033",
+            color: "#fff",
+          },
+        });
+      })
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        toast.success("Đăng nhập Google thành công", {
+          style: {
+            backgroundColor: "#005cb8",
+            color: "#fff",
+          },
+        });
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        toast.error(action.payload as string || "Đăng nhập Google thất bại", {
           style: {
             backgroundColor: "#ff0033",
             color: "#fff",

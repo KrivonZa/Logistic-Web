@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { User, Lock, Eye, EyeOff, ChevronsRight } from "lucide-react";
-import { login } from "@/stores/authentManager/thunk";
+import { FcGoogle } from "react-icons/fc";
+import { login, googleLogin } from "@/stores/authentManager/thunk";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppDispatch } from "@/stores";
 import { toast } from "sonner";
@@ -65,25 +66,42 @@ export default function Login() {
           break;
         default:
           toast.error("Tài khoản không có quyền truy cập", {
-            style: {
-              backgroundColor: "#ff0033",
-              color: "#fff",
-            },
+            style: { backgroundColor: "#ff0033", color: "#fff" },
           });
           break;
       }
-    } catch (err) {
-      toast.error("Đã có lỗi xảy ra khi đăng nhập", {
-        style: {
-          backgroundColor: "#ff0033",
-          color: "#fff",
-        },
-      });
-    }
+    } catch (err) {}
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await dispatch(googleLogin()).unwrap();
+      const role = result?.data?.role;
+
+      switch (role) {
+        case "Admin":
+          router.push("/admin/dashboard");
+          break;
+        case "Company":
+          router.push("/company/dashboard");
+          break;
+        case "Coordinator":
+          router.push("/coordinator/dashboard");
+          break;
+        case "Staff":
+          router.push("/staff/dashboard");
+          break;
+        default:
+          toast.error("Tài khoản không có quyền truy cập", {
+            style: { backgroundColor: "#ff0033", color: "#fff" },
+          });
+          break;
+      }
+    } catch (err) {}
   };
 
   return (
-    <div className="min-h-screen flex sm:items-center justify-center sm:py-8 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-between sm:py-8 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-subtle via-neutral to-tertiary">
         <div className="absolute top-[-10%] left-[-10%] w-32 h-32 sm:w-48 sm:h-48 bg-white/10 rounded-full" />
         <div className="absolute bottom-[-15%] right-[-5%] w-40 h-40 sm:w-64 sm:h-64 bg-white/15 rotate-45" />
@@ -91,7 +109,7 @@ export default function Login() {
         <div className="absolute bottom-1/3 left-1/5 w-16 h-16 sm:w-24 sm:h-24 bg-indigo-300/25 rounded-full" />
       </div>
 
-      <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg flex flex-col items-center gap-4">
+      <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg flex flex-col items-center gap-4 flex-1">
         <Image
           src="/logo/white_logo_small.png"
           alt="Flipship White Logo"
@@ -174,6 +192,7 @@ export default function Login() {
                 size="lg"
                 type="submit"
                 className="relative overflow-hidden w-full h-12 sm:h-14 rounded-xl bg-gradient-to-r from-primary to-[#00B4D8] text-white font-semibold shadow-lg group transition-all duration-300 [&_svg]:size-6"
+                disabled={loading}
               >
                 {loading ? (
                   <Spinner size={"medium"} className="text-white" />
@@ -188,6 +207,30 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            <div className="relative flex items-center justify-center my-6">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="flex-shrink mx-4 text-gray-500 text-sm">
+                Hoặc
+              </span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <Button
+              size="lg"
+              className="w-full h-12 sm:h-14 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold shadow-sm hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center gap-2"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <Spinner size={"medium"} className="text-gray-700" />
+              ) : (
+                <>
+                  <FcGoogle className="h-6 w-6" />
+                  Đăng nhập bằng Google
+                </>
+              )}
+            </Button>
 
             <div className="flex flex-col sm:flex-row justify-between items-center text-sm gap-4 sm:gap-0">
               <Link
@@ -209,8 +252,8 @@ export default function Login() {
         </Card>
       </div>
 
-      <footer className="absolute bottom-8 sm:bottom-4 z-10 flex items-center opacity-80">
-        <span className="text-center text-white text-xs sm:text-base font-medium">
+      <footer className="mt-8 sm:mt-4 z-10 flex items-center justify-center opacity-80">
+        <span className="text-center text-white text-xs sm:text-base font-medium mr-2">
           Phát triển bởi
         </span>
         <Image
