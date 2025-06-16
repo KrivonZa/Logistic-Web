@@ -1,5 +1,5 @@
 import api from "@/hooks/axiosInstance";
-import { Login } from "@/types/account";
+import { Login, BusinessRegister } from "@/types/account";
 
 export const manageAuthen = {
   login: (req: Login) => api.post(`/auth/login`, req),
@@ -9,4 +9,6 @@ export const manageAuthen = {
     }
     return api.get(`/auth/google`);
   },
+  registerBusiness: (req: BusinessRegister) =>
+    api.post(`/auth/register-company`, req),
 };

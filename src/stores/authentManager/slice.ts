@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login, googleLogin } from "./thunk";
+import { login, googleLogin, registerBusiness } from "./thunk";
 import { toast } from "sonner";
 
 type stateType = {
@@ -31,11 +31,7 @@ export const manageAuthenSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
 
-        const message = action.payload === "Unauthenticated or unauthorized"
-          ? "Bạn không có quyền truy cập vào trang này"
-          : "Email hoặc mật khẩu không đúng";
-
-        toast.error(message, {
+        toast.error(action.payload as string, {
           style: {
             backgroundColor: "#ff0033",
             color: "#fff",
@@ -56,7 +52,31 @@ export const manageAuthenSlice = createSlice({
       })
       .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false;
-        toast.error(action.payload as string || "Đăng nhập Google thất bại", {
+        toast.error((action.payload as string) || "Đăng nhập Google thất bại", {
+          style: {
+            backgroundColor: "#ff0033",
+            color: "#fff",
+          },
+        });
+      })
+      .addCase(registerBusiness.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(registerBusiness.fulfilled, (state, action) => {
+        state.loading = false;
+        toast.success(
+          "Đăng ký thành công. Đơn đăng ký sẽ được xác nhận trong vòng 48h kể từ ngày gửi đơn",
+          {
+            style: {
+              backgroundColor: "#005cb8",
+              color: "#fff",
+            },
+          }
+        );
+      })
+      .addCase(registerBusiness.rejected, (state, action) => {
+        state.loading = false;
+        toast.error("Đã có lỗi trong quá trình đăng ký. Vui lòng thử lại", {
           style: {
             backgroundColor: "#ff0033",
             color: "#fff",

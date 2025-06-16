@@ -3,6 +3,18 @@ export interface Login {
   password: string;
 }
 
+export interface BusinessRegister {
+  email: string;
+  fullName: string;
+  password: string;
+  taxCode: string;
+  phoneNumber: string;
+  address: string;
+  bankName: string;
+  bankAccount: string;
+  license: File;
+}
+
 export interface Account {
   accountID: string;
   email: string;

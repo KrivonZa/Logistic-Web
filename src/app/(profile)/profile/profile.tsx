@@ -9,7 +9,8 @@ import { Pencil } from "lucide-react";
 import { profile } from "@/stores/accountManager/thunk";
 import { useAccount } from "@/hooks/useAccount";
 import { useAppDispatch } from "@/stores";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
 
 export default function UserProfile() {
   const dispatch = useAppDispatch();
@@ -38,6 +39,28 @@ export default function UserProfile() {
     </div>
   );
 
+  const LinkField = ({ label, url }: { label: string; url: string }) => (
+    <div className="space-y-1.5">
+      <Label className="text-base font-medium">{label}</Label>
+      {url ? (
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => window.open(url, "_blank")}
+        >
+          Xem giấy phép kinh doanh
+        </Button>
+      ) : (
+        <Input
+          disabled
+          value=""
+          className="bg-muted/50 cursor-default"
+          placeholder="Không có dữ liệu"
+        />
+      )}
+    </div>
+  );
+
   const renderDetailFields = () => {
     if (!info?.role) return null;
 
@@ -47,10 +70,21 @@ export default function UserProfile() {
       case "Company":
         return (
           <>
-            <Field label="Tên công ty" value={detail?.companyName ?? ""} />
+            <Field label="Tên công ty" value={info?.fullName ?? ""} />
             <Field label="Mã số thuế" value={detail?.taxCode ?? ""} />
-            <Field label="Người đại diện" value={detail?.picFullName ?? ""} />
-            <Field label="Email liên hệ" value={detail?.contactEmail ?? ""} />
+            <Field
+              label="Người đại diện hợp pháp"
+              value={detail?.legalRep ?? ""}
+            />
+            <Field label="Email liên hệ" value={info?.email ?? ""} />
+            <Field label="Số điện thoại" value={detail?.phoneNumber ?? ""} />
+            <Field label="Địa chỉ" value={detail?.address ?? ""} />
+            <Field label="Ngân hàng" value={detail?.bankName ?? ""} />
+            <Field label="Số tài khoản" value={detail?.bankAccount ?? ""} />
+            <LinkField
+              label="Giấy phép kinh doanh"
+              url={detail?.license ?? ""}
+            />
             <Field
               label="Cập nhật lần cuối"
               value={
@@ -111,7 +145,7 @@ export default function UserProfile() {
       <CardContent className="space-y-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[300px]">
-            <Loader2 className="h-10 w-10 animate-spin text-primary mb-2" />
+            <Spinner className="h-10 w-10 animate-spin text-primary mb-2" />
             <p className="text-muted-foreground">Đang tải thông tin...</p>
           </div>
         ) : (

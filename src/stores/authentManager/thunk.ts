@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageAuthen } from "@/services/manageAuthen";
-import { Login } from "@/types/account";
+import { Login, BusinessRegister } from "@/types/account";
 
 export const login = createAsyncThunk(
   "auth/login",
@@ -87,6 +87,20 @@ export const googleLogin = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(
         error?.response?.data?.message || "Đăng nhập thất bại"
+      );
+    }
+  }
+);
+
+export const registerBusiness = createAsyncThunk(
+  "auth/register-company",
+  async (req: BusinessRegister, { rejectWithValue }) => {
+    try {
+      const response = await manageAuthen.registerBusiness(req);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || "Đăng ký thất bại"
       );
     }
   }
