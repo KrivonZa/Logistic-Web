@@ -27,7 +27,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export default function CompanyEditForm({ info }: { info: any }) {
-  const [avatar, setAvatar] = useState(info.avatar || null);
+  const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
   const avatarFileRef = useRef<File | null>(null);
 
   const {
@@ -61,7 +61,7 @@ export default function CompanyEditForm({ info }: { info: any }) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <EditableAvatar
         name={info.fullName}
-        avatarUrl={avatar}
+        avatarUrl={avatar ?? undefined}
         onChange={(file) => {
           setAvatar(URL.createObjectURL(file));
           avatarFileRef.current = file;

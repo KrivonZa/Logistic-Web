@@ -34,7 +34,7 @@ export default function StaffEditForm({ info }: { info: any }) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <EditableAvatar
         name={info.fullName}
-        avatarUrl={avatar}
+        avatarUrl={avatar ?? undefined}
         onChange={(file: File) => {
           setAvatar(URL.createObjectURL(file));
           avatarFileRef.current = file;
