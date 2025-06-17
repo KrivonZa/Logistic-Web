@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Pencil } from "lucide-react";
 import { profile } from "@/stores/accountManager/thunk";
 import { useAccount } from "@/hooks/useAccount";
 import { useAppDispatch } from "@/stores";
@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 export default function UserProfile() {
   const dispatch = useAppDispatch();
   const { loading, info } = useAccount();
+  const router = useRouter();
+  console.log(info)
 
   useEffect(() => {
     dispatch(profile());
@@ -23,19 +25,7 @@ export default function UserProfile() {
   const Field = ({ label, value }: { label: string; value: string }) => (
     <div className="space-y-1.5">
       <Label className="text-base font-medium">{label}</Label>
-      <div className="relative">
-        <Input
-          value={value}
-          disabled
-          className="pr-10 bg-muted/50 cursor-default"
-        />
-        <button
-          type="button"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-blue-600"
-        >
-          <Pencil size={18} />
-        </button>
-      </div>
+      <Input value={value} disabled className="bg-muted/50 cursor-default" />
     </div>
   );
 
@@ -101,8 +91,10 @@ export default function UserProfile() {
           <>
             <Field
               label="Công ty trực thuộc"
-              value={detail?.Company?.companyName ?? ""}
+              value={detail?.Company?.Account?.fullName ?? ""}
             />
+            <Field label="Họ và tên" value={info?.fullName ?? ""} />
+            <Field label="Email" value={info?.email ?? ""} />
             <Field label="Mã nhân viên" value={detail?.employeeCode ?? ""} />
             <Field label="Số điện thoại" value={detail?.phoneNumber ?? ""} />
             <Field
@@ -119,21 +111,21 @@ export default function UserProfile() {
       case "Staff":
         return (
           <>
+            <Field label="Họ và tên" value={info?.fullName ?? ""} />
+            <Field label="Email" value={info?.email ?? ""} />
             <Field label="Đơn vị công tác" value={detail?.department ?? ""} />
-            <Field label="Mã nhân viên" value={detail?.phone ?? ""} />
-            <Field
-              label="Cập nhật lần cuối"
-              value={
-                detail?.updatedAt
-                  ? new Date(detail.updatedAt).toLocaleDateString("vi-VN")
-                  : ""
-              }
-            />
+            <Field label="Mã nhân viên" value={detail?.employeeCode ?? ""} />
           </>
         );
 
       case "Admin":
-        return <Field label="Vai trò" value="Quản trị viên hệ thống" />;
+        return (
+          <>
+            <Field label="Vai trò" value="Quản trị viên hệ thống" />
+            <Field label="Họ và tên" value={info?.fullName ?? ""} />
+            <Field label="Email" value={info?.email ?? ""} />
+          </>
+        );
 
       default:
         return null;
@@ -151,7 +143,7 @@ export default function UserProfile() {
         ) : (
           <>
             <h1 className="text-2xl md:text-3xl text-primary text-center font-bold mb-6">
-              Thông tin cá nhân
+              Thông tin
             </h1>
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
               <Avatar className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0">
@@ -169,6 +161,12 @@ export default function UserProfile() {
             </div>
 
             <div className="space-y-4">{renderDetailFields()}</div>
+
+            <div className="flex justify-end pt-4">
+              <Button onClick={() => router.push("/edit-profile")}>
+                Chỉnh sửa
+              </Button>
+            </div>
           </>
         )}
       </CardContent>

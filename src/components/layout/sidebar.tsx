@@ -13,6 +13,7 @@ import {
   X,
   MapPinned,
   Bell,
+  ClipboardList,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -54,9 +55,9 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       ],
     },
     {
-      href: "/settings",
-      icon: <Settings className="h-5 w-5" />,
-      label: "Cài đặt",
+      href: "/admin/request-company",
+      icon: <ClipboardList className="h-5 w-5" />,
+      label: "Đơn yêu cầu tạo doanh nghiệp",
     },
   ],
   Company: [
@@ -96,6 +97,14 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       href: "/staff/dashboard",
       icon: <Home className="h-5 w-5" />,
       label: "Trang chủ",
+    },
+    {
+      icon: <ClipboardList className="h-5 w-5" />,
+      label: "Quản lý đơn",
+      children: [
+        { href: "/staff/driver", label: "Đơn yêu cầu tài xế" },
+        { href: "/staff/coordinator", label: "Đơn yêu cầu nhân viên" },
+      ],
     },
   ],
 };
