@@ -53,7 +53,7 @@ export default function CoordinatorEditForm({ info }: { info: any }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="employeeCode">Mã nhân viên</Label>
-        <Input id="employeeCode" {...register("employeeCode")} />
+        <Input disabled id="employeeCode" {...register("employeeCode")} />
       </div>
       <div className="flex justify-end pt-4">
         <Button type="submit">Lưu thay đổi</Button>

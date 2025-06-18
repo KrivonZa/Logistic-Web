@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import EditableAvatar from "./editableAvatar";
 
 const formSchema = z.object({
@@ -68,7 +67,6 @@ export default function CompanyEditForm({ info }: { info: any }) {
         }}
       />
 
-      {/* Form fields */}
       {[
         { label: "Tên doanh nghiệp", name: "companyName" },
         { label: "Mã số thuế", name: "taxCode" },
@@ -94,7 +92,6 @@ export default function CompanyEditForm({ info }: { info: any }) {
         </div>
       ))}
 
-      {/* License */}
       <div className="space-y-1.5">
         <Label htmlFor="license">Giấy phép kinh doanh</Label>
         <Input
@@ -111,7 +108,6 @@ export default function CompanyEditForm({ info }: { info: any }) {
         )}
       </div>
 
-      {/* Submit */}
       <div className="flex justify-end pt-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}

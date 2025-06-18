@@ -20,4 +20,4 @@ const Coordinators = () => {
   );
 };
 
-export default isAuth(Coordinators, ["Admin"]);
+export default isAuth(Coordinators, ["Company"]);

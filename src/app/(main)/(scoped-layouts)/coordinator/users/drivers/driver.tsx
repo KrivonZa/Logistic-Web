@@ -20,4 +20,4 @@ const Drivers = () => {
   );
 };
 
-export default isAuth(Drivers, ["Admin"]);
+export default isAuth(Drivers, ["Coordinator"]);

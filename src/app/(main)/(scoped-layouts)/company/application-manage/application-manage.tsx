@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import isAuth from "@/components/isAuth";
 
-const Drivers = () => {
+const ApplicationManage = () => {
   //constant for Library
 
   //constant for State
@@ -15,9 +15,9 @@ const Drivers = () => {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="flex sm:items-center justify-center sm:py-8 sm:px-6 lg:px-8 relative overflow-hidden"
     >
-      <div>Drivers</div>
+      <div>Application Manage</div>
     </motion.div>
   );
 };
 
-export default isAuth(Drivers, ["Company"]);
+export default isAuth(ApplicationManage, ["Company"]);

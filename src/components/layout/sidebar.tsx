@@ -54,11 +54,6 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
         { href: "/admin/users/staffs", label: "Nhân viên Nền tảng" },
       ],
     },
-    {
-      href: "/admin/request-company",
-      icon: <ClipboardList className="h-5 w-5" />,
-      label: "Đơn yêu cầu tạo doanh nghiệp",
-    },
   ],
   Company: [
     {
@@ -70,14 +65,19 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       icon: <Users className="h-5 w-5" />,
       label: "Quản lý",
       children: [
-        { href: "/company/drivers", label: "Tài xế" },
-        { href: "/company/staffs", label: "Nhân viên" },
+        { href: "/company/users/drivers", label: "Tài xế" },
+        { href: "/company/users/coordinators", label: "Nhân viên" },
       ],
     },
     {
       href: "/company/route",
       icon: <MapPinned className="h-5 w-5" />,
       label: "Quản lý tuyến đường",
+    },
+    {
+      href: "/company/application-manage",
+      icon: <ClipboardList className="h-5 w-5" />,
+      label: "Đơn đã gửi",
     },
   ],
   Coordinator: [
@@ -87,9 +87,14 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       label: "Trang chủ",
     },
     {
-      href: "/coordinator/drivers",
+      href: "/coordinator/users/drivers",
       icon: <Users className="h-5 w-5" />,
       label: "Tài xế",
+    },
+    {
+      href: "/coordinator/application-manage",
+      icon: <ClipboardList className="h-5 w-5" />,
+      label: "Đơn đã gửi",
     },
   ],
   Staff: [
@@ -102,8 +107,15 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       icon: <ClipboardList className="h-5 w-5" />,
       label: "Quản lý đơn",
       children: [
-        { href: "/staff/driver", label: "Đơn yêu cầu tài xế" },
-        { href: "/staff/coordinator", label: "Đơn yêu cầu nhân viên" },
+        {
+          href: "/staff/application-manage/request-company",
+          label: "Doanh nghiệp",
+        },
+        { href: "/staff/application-manage/create-driver", label: "Tài xế" },
+        {
+          href: "/staff/application-manage/create-coordinator",
+          label: "Nhân viên điều phối",
+        },
       ],
     },
   ],

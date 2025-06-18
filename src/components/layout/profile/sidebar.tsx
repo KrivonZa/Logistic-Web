@@ -81,7 +81,10 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
       <nav className="space-y-2 flex-grow">
         {sidebarLinks.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive =
+            (link.href === "/profile" &&
+              ["/profile", "/edit-profile"].includes(pathname)) ||
+            pathname === link.href;
           return (
             <Link
               key={link.href}

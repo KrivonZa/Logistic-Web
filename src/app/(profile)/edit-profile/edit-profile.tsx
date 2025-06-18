@@ -21,9 +21,9 @@ export default function EditProfile() {
       case "Coordinator":
         return <CoordinatorEditForm info={info} />;
       case "Admin":
-        return <CoordinatorEditForm info={info} />;
+        return <AdminEditForm info={info} />;
       case "Staff":
-        return <CoordinatorEditForm info={info} />;
+        return <StaffEditForm info={info} />;
       default:
         return (
           <p className="text-muted-foreground">

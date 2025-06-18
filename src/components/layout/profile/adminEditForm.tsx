@@ -18,6 +18,8 @@ export default function AdminEditForm({ info }: { info: any }) {
     },
   });
 
+  console.log(info)
+
   const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
   const avatarFileRef = useRef<File | null>(null);
 
