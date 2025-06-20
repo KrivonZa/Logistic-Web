@@ -327,6 +327,16 @@ const RegisterBusiness = () => {
 
               <FormError message={errors.license?.message} />
             </div>
+
+            <div>
+              <Label>Ghi chú</Label>
+              <Textarea
+                {...register("address")}
+                placeholder="Ghi chú cho đơn"
+                className="bg-white w-full rounded-lg border-2 border-indigo-200 focus:border-primary focus:ring-4 focus:ring-indigo-200/50 transition-all duration-300 outline-none"
+              />
+              <FormError message={errors.address?.message} />
+            </div>
           </div>
 
           <Button

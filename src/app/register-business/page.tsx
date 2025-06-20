@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Register Business",
-  description: "Register Business Screen for Companies",
+  title: "Đăng ký doanh nghiệp",
+  description: "Đăng ký doanh nghiệp",
 };
 
 import RegisterBusiness from "./register-business";

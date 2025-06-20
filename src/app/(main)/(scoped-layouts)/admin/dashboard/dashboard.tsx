@@ -19,187 +19,196 @@ import { motion } from "framer-motion";
 import isAuth from "@/components/isAuth";
 import { useState } from "react";
 
+// Mock review data for the platform
+const reviewData = [
+  { rating: 5, count: 50 },
+  { rating: 4, count: 30 },
+  { rating: 3, count: 15 },
+  { rating: 2, count: 3 },
+  { rating: 1, count: 2 },
+];
+
 const dummyData = [
   {
-    name: "Công ty A",
-    revenue: 120000,
-    requests: 45,
-    updateInfo: 10,
-    registerBusiness: 15,
-    registerDriver: 12,
-    registerCoordinator: 8,
-  },
-  {
-    name: "Công ty B",
-    revenue: 85000,
-    requests: 32,
-    updateInfo: 8,
-    registerBusiness: 10,
-    registerDriver: 9,
-    registerCoordinator: 5,
-  },
-  {
-    name: "Công ty C",
-    revenue: 60000,
-    requests: 28,
-    updateInfo: 7,
-    registerBusiness: 8,
-    registerDriver: 8,
-    registerCoordinator: 5,
-  },
-  {
-    name: "Công ty D",
-    revenue: 50000,
-    requests: 20,
-    updateInfo: 5,
-    registerBusiness: 6,
-    registerDriver: 5,
-    registerCoordinator: 4,
-  },
-  {
-    name: "Công ty E",
-    revenue: 42000,
-    requests: 18,
-    updateInfo: 4,
-    registerBusiness: 5,
-    registerDriver: 5,
-    registerCoordinator: 4,
-  },
-  {
-    name: "Công ty F",
-    revenue: 39000,
-    requests: 16,
-    updateInfo: 4,
-    registerBusiness: 4,
-    registerDriver: 4,
-    registerCoordinator: 4,
-  },
-  {
-    name: "Công ty G",
-    revenue: 30000,
-    requests: 12,
-    updateInfo: 3,
-    registerBusiness: 3,
-    registerDriver: 3,
-    registerCoordinator: 3,
-  },
-  {
-    name: "Công ty H",
-    revenue: 26000,
-    requests: 10,
-    updateInfo: 2,
-    registerBusiness: 3,
-    registerDriver: 3,
-    registerCoordinator: 2,
-  },
-  {
-    name: "Công ty I",
-    revenue: 24000,
-    requests: 8,
-    updateInfo: 2,
-    registerBusiness: 2,
-    registerDriver: 2,
-    registerCoordinator: 2,
-  },
-  {
-    name: "Công ty J",
-    revenue: 22000,
-    requests: 6,
-    updateInfo: 1,
-    registerBusiness: 2,
-    registerDriver: 2,
-    registerCoordinator: 1,
-  },
-  {
-    name: "Công ty K",
-    revenue: 20000,
-    requests: 5,
-    updateInfo: 1,
-    registerBusiness: 1,
-    registerDriver: 2,
-    registerCoordinator: 1,
-  },
-  {
-    name: "Công ty L",
-    revenue: 18000,
-    requests: 4,
-    updateInfo: 1,
-    registerBusiness: 1,
-    registerDriver: 1,
-    registerCoordinator: 1,
-  },
-  {
-    name: "Công ty M",
-    revenue: 17000,
-    requests: 3,
-    updateInfo: 1,
-    registerBusiness: 1,
-    registerDriver: 1,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty N",
-    revenue: 16000,
-    requests: 3,
-    updateInfo: 1,
-    registerBusiness: 1,
-    registerDriver: 1,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty O",
-    revenue: 15000,
-    requests: 2,
-    updateInfo: 0,
-    registerBusiness: 1,
-    registerDriver: 1,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty P",
-    revenue: 14000,
-    requests: 2,
-    updateInfo: 0,
-    registerBusiness: 1,
-    registerDriver: 1,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty Q",
-    revenue: 13000,
-    requests: 2,
-    updateInfo: 0,
-    registerBusiness: 1,
-    registerDriver: 1,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty R",
-    revenue: 12000,
-    requests: 1,
-    updateInfo: 0,
-    registerBusiness: 1,
-    registerDriver: 0,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty S",
-    revenue: 11000,
-    requests: 1,
-    updateInfo: 0,
-    registerBusiness: 1,
-    registerDriver: 0,
-    registerCoordinator: 0,
-  },
-  {
-    name: "Công ty T",
-    revenue: 10000,
-    requests: 1,
-    updateInfo: 0,
-    registerBusiness: 1,
-    registerDriver: 0,
-    registerCoordinator: 0,
-  },
+      name: "Công ty A",
+      revenue: 120000,
+      requests: 45,
+      updateInfo: 10,
+      registerBusiness: 15,
+      registerDriver: 12,
+      registerCoordinator: 8,
+    },
+    {
+      name: "Công ty B",
+      revenue: 85000,
+      requests: 32,
+      updateInfo: 8,
+      registerBusiness: 10,
+      registerDriver: 9,
+      registerCoordinator: 5,
+    },
+    {
+      name: "Công ty C",
+      revenue: 60000,
+      requests: 28,
+      updateInfo: 7,
+      registerBusiness: 8,
+      registerDriver: 8,
+      registerCoordinator: 5,
+    },
+    {
+      name: "Công ty D",
+      revenue: 50000,
+      requests: 20,
+      updateInfo: 5,
+      registerBusiness: 6,
+      registerDriver: 5,
+      registerCoordinator: 4,
+    },
+    {
+      name: "Công ty E",
+      revenue: 42000,
+      requests: 18,
+      updateInfo: 4,
+      registerBusiness: 5,
+      registerDriver: 5,
+      registerCoordinator: 4,
+    },
+    {
+      name: "Công ty F",
+      revenue: 39000,
+      requests: 16,
+      updateInfo: 4,
+      registerBusiness: 4,
+      registerDriver: 4,
+      registerCoordinator: 4,
+    },
+    {
+      name: "Công ty G",
+      revenue: 30000,
+      requests: 12,
+      updateInfo: 3,
+      registerBusiness: 3,
+      registerDriver: 3,
+      registerCoordinator: 3,
+    },
+    {
+      name: "Công ty H",
+      revenue: 26000,
+      requests: 10,
+      updateInfo: 2,
+      registerBusiness: 3,
+      registerDriver: 3,
+      registerCoordinator: 2,
+    },
+    {
+      name: "Công ty I",
+      revenue: 24000,
+      requests: 8,
+      updateInfo: 2,
+      registerBusiness: 2,
+      registerDriver: 2,
+      registerCoordinator: 2,
+    },
+    {
+      name: "Công ty J",
+      revenue: 22000,
+      requests: 6,
+      updateInfo: 1,
+      registerBusiness: 2,
+      registerDriver: 2,
+      registerCoordinator: 1,
+    },
+    {
+      name: "Công ty K",
+      revenue: 20000,
+      requests: 5,
+      updateInfo: 1,
+      registerBusiness: 1,
+      registerDriver: 2,
+      registerCoordinator: 1,
+    },
+    {
+      name: "Công ty L",
+      revenue: 18000,
+      requests: 4,
+      updateInfo: 1,
+      registerBusiness: 1,
+      registerDriver: 1,
+      registerCoordinator: 1,
+    },
+    {
+      name: "Công ty M",
+      revenue: 17000,
+      requests: 3,
+      updateInfo: 1,
+      registerBusiness: 1,
+      registerDriver: 1,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty N",
+      revenue: 16000,
+      requests: 3,
+      updateInfo: 1,
+      registerBusiness: 1,
+      registerDriver: 1,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty O",
+      revenue: 15000,
+      requests: 2,
+      updateInfo: 0,
+      registerBusiness: 1,
+      registerDriver: 1,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty P",
+      revenue: 14000,
+      requests: 2,
+      updateInfo: 0,
+      registerBusiness: 1,
+      registerDriver: 1,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty Q",
+      revenue: 13000,
+      requests: 2,
+      updateInfo: 0,
+      registerBusiness: 1,
+      registerDriver: 1,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty R",
+      revenue: 12000,
+      requests: 1,
+      updateInfo: 0,
+      registerBusiness: 1,
+      registerDriver: 0,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty S",
+      revenue: 11000,
+      requests: 1,
+      updateInfo: 0,
+      registerBusiness: 1,
+      registerDriver: 0,
+      registerCoordinator: 0,
+    },
+    {
+      name: "Công ty T",
+      revenue: 10000,
+      requests: 1,
+      updateInfo: 0,
+      registerBusiness: 1,
+      registerDriver: 0,
+      registerCoordinator: 0,
+    },
 ];
 
 // Sample data for request type distribution (aggregated)
@@ -262,6 +271,38 @@ const Dashboard = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Calculate summary statistics
+  const totalRevenue = dummyData.reduce(
+    (sum, company) => sum + company.revenue,
+    0
+  );
+  const totalRequests = dummyData.reduce(
+    (sum, company) => sum + company.requests,
+    0
+  );
+  const totalUpdateInfo = dummyData.reduce(
+    (sum, company) => sum + company.updateInfo,
+    0
+  );
+  const totalRegisterBusiness = dummyData.reduce(
+    (sum, company) => sum + company.registerBusiness,
+    0
+  );
+  const totalRegisterDriver = dummyData.reduce(
+    (sum, company) => sum + company.registerDriver,
+    0
+  );
+  const totalRegisterCoordinator = dummyData.reduce(
+    (sum, company) => sum + company.registerCoordinator,
+    0
+  );
+
+  // Calculate review statistics
+  const totalReviews = reviewData.reduce((sum, review) => sum + review.count, 0);
+  const averageRating =
+    reviewData.reduce((sum, review) => sum + review.rating * review.count, 0) /
+    totalReviews;
+
   return (
     <motion.div
       initial={{ y: 40, opacity: 0 }}
@@ -269,6 +310,79 @@ const Dashboard = () => {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="flex flex-col gap-8 items-center justify-center py-6 px-4 sm:px-6 lg:px-8 w-full"
     >
+      {/* Summary Section */}
+      <div className="w-full max-w-5xl">
+        <h2 className="text-xl font-semibold mb-4">Tổng quan</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng doanh thu
+              </CardTitle>
+              <p className="text-lg font-bold">
+                {totalRevenue.toLocaleString()} VND
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng yêu cầu
+              </CardTitle>
+              <p className="text-lg font-bold">{totalRequests}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Cập nhật thông tin
+              </CardTitle>
+              <p className="text-lg font-bold">{totalUpdateInfo}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Đăng ký doanh nghiệp
+              </CardTitle>
+              <p className="text-lg font-bold">{totalRegisterBusiness}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Đăng ký tài xế
+              </CardTitle>
+              <p className="text-lg font-bold">{totalRegisterDriver}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Đăng ký nhân viên điều phối
+              </CardTitle>
+              <p className="text-lg font-bold">{totalRegisterCoordinator}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng đánh giá
+              </CardTitle>
+              <p className="text-lg font-bold">{totalReviews}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Điểm đánh giá trung bình
+              </CardTitle>
+              <p className="text-lg font-bold">{averageRating.toFixed(1)} ⭐</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Revenue Bar Chart */}
       <div className="w-full max-w-5xl">
         <h2 className="text-xl font-semibold mb-4">
@@ -450,4 +564,5 @@ const Dashboard = () => {
   );
 };
 
-export default isAuth(Dashboard, ["Admin"]);
+//export default isAuth(Dashboard, ["Admin"]);
+export default Dashboard;

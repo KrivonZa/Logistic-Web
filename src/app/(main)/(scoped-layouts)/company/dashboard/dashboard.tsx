@@ -18,6 +18,15 @@ import {
 } from "recharts";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 
+// Mock company review data
+const companyReviewData = [
+  { rating: 5, count: 40 },
+  { rating: 4, count: 25 },
+  { rating: 3, count: 10 },
+  { rating: 2, count: 3 },
+  { rating: 1, count: 2 },
+];
+
 // Dữ liệu doanh thu hàng tháng
 const monthlyRevenueData = [
   { month: "Jan", revenue: 12000 },
@@ -80,7 +89,6 @@ const allDrivers = [
     rating: 4.7,
     lastActive: "2025-06-02",
   },
-  // Thêm nhiều tài xế khác nếu cần
 ];
 
 // Màu sắc cho biểu đồ Pie
@@ -95,6 +103,25 @@ const Dashboard = () => {
     currentPage * itemsPerPage
   );
 
+  // Calculate summary statistics
+  const totalRevenue = allDrivers.reduce(
+    (sum, driver) => sum + driver.revenue,
+    0
+  );
+  const totalTrips = allDrivers.reduce((sum, driver) => sum + driver.trips, 0);
+  const totalDrivers = allDrivers.length;
+  const averageDriverRating =
+    allDrivers.reduce((sum, driver) => sum + driver.rating, 0) / totalDrivers;
+  const totalCompanyReviews = companyReviewData.reduce(
+    (sum, review) => sum + review.count,
+    0
+  );
+  const averageCompanyRating =
+    companyReviewData.reduce(
+      (sum, review) => sum + review.rating * review.count,
+      0
+    ) / totalCompanyReviews;
+
   return (
     <motion.div
       initial={{ y: 40, opacity: 0 }}
@@ -105,6 +132,65 @@ const Dashboard = () => {
       <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
         Thống kê doanh thu
       </h2>
+
+      {/* Summary Section */}
+      <div className="w-full max-w-6xl mb-8">
+        <h3 className="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">
+          Tổng quan
+        </h3>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng doanh thu
+              </CardTitle>
+              <p className="text-lg font-bold">
+                {totalRevenue.toLocaleString("vi-VN")} VND
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng số chuyến
+              </CardTitle>
+              <p className="text-lg font-bold">{totalTrips}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng số tài xế
+              </CardTitle>
+              <p className="text-lg font-bold">{totalDrivers}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Đánh giá tài xế trung bình
+              </CardTitle>
+              <p className="text-lg font-bold">{averageDriverRating.toFixed(1)} ⭐</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Tổng đánh giá doanh nghiệp
+              </CardTitle>
+              <p className="text-lg font-bold">{totalCompanyReviews}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-base font-semibold mb-2">
+                Đánh giá doanh nghiệp trung bình
+              </CardTitle>
+              <p className="text-lg font-bold">{averageCompanyRating.toFixed(1)} ⭐</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Biểu đồ doanh thu hàng tháng */}
@@ -121,9 +207,7 @@ const Dashboard = () => {
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip
-                formatter={(value) =>
-                  value.toLocaleString("vi-VN") + "₫"
-                }
+                formatter={(value) => value.toLocaleString("vi-VN") + "₫"}
               />
               <Legend />
               <Bar dataKey="revenue" fill="#3b82f6" name="Doanh thu (₫)" />
@@ -145,9 +229,7 @@ const Dashboard = () => {
               <XAxis dataKey="driver" />
               <YAxis />
               <Tooltip
-                formatter={(value) =>
-                  value.toLocaleString("vi-VN") + "₫"
-                }
+                formatter={(value) => value.toLocaleString("vi-VN") + "₫"}
               />
               <Legend />
               <Bar dataKey="revenue" fill="#f97316" name="Doanh thu (₫)" />
@@ -171,9 +253,7 @@ const Dashboard = () => {
               cy="50%"
               outerRadius={100}
               fill="#8884d8"
-              label={({ name, percent }) =>
-                `${name}: ${(percent * 100).toFixed(0)}%`
-              }
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
             >
               {driverRevenueData.map((entry, index) => (
                 <Cell
@@ -183,9 +263,7 @@ const Dashboard = () => {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) =>
-                value.toLocaleString("vi-VN") + "₫"
-              }
+              formatter={(value) => value.toLocaleString("vi-VN") + "₫"}
             />
             <Legend />
           </PieChart>
