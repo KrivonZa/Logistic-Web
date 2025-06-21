@@ -11,7 +11,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedRole = sessionStorage.getItem("role");
+    const storedRole = localStorage.getItem("role");
     if (storedRole) setRole(storedRole);
 
     const mediaQuery = window.matchMedia("(min-width: 640px)");

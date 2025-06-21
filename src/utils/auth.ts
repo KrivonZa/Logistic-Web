@@ -17,8 +17,8 @@ function parseJwt(token: string) {
 
 // Kiểm tra token và role hợp lệ
 export const hasAccess = (allowedRoles: string[] = []): boolean => {
-  const token = sessionStorage.getItem("authToken");
-  const role = sessionStorage.getItem("role");
+  const token = localStorage.getItem("authToken");
+  const role = localStorage.getItem("role");
 
   if (!token) return false;
 
@@ -27,7 +27,7 @@ export const hasAccess = (allowedRoles: string[] = []): boolean => {
 
   //Kiểm tra session
   if (!payload || !payload.exp || payload.exp < now) {
-    sessionStorage.clear();
+    localStorage.clear();
     return false;
   }
 

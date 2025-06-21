@@ -22,7 +22,7 @@ const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem("authToken") : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

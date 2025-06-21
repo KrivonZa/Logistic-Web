@@ -17,8 +17,8 @@ export const login = createAsyncThunk(
         );
       }
 
-      sessionStorage.setItem("authToken", token);
-      sessionStorage.setItem("role", role);
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("role", role);
 
       return response.data;
     } catch (error: any) {
@@ -80,8 +80,8 @@ export const googleLogin = createAsyncThunk(
         );
       }
 
-      sessionStorage.setItem("authToken", token);
-      sessionStorage.setItem("role", role);
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("role", role);
 
       return tokenResponse.data;
     } catch (error: any) {

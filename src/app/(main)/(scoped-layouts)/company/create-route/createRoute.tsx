@@ -23,6 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { X } from "lucide-react";
 import axios from "axios";
 import polyline from "@mapbox/polyline";
+import debounce from "lodash/debounce";
 
 const GoongJS = dynamic(() => import("@goongmaps/goong-js"), { ssr: false });
 
@@ -85,7 +86,9 @@ const CreateRoute = () => {
   const [GoongMap, setGoongMap] = useState<any>(null);
   const mapRef = useRef<any>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const [markers, setMarkers] = useState<any[]>([]);
+  const [markers, setMarkers] = useState<Record<string, any>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
   const goongApiKey = process.env.NEXT_PUBLIC_GOONG_API_KEY!;
   const goongMaptilesKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY!;
@@ -95,66 +98,110 @@ const CreateRoute = () => {
   );
 
   const drawRoute = async () => {
-    if (waypoints.length < 2 || !GoongMap || !mapRef.current) return;
+    if (!GoongMap || !mapRef.current) return;
+
+    if (waypoints.length < 2) {
+      if (mapRef.current.getLayer("route")) {
+        mapRef.current.removeLayer("route");
+      }
+      if (mapRef.current.getSource("route")) {
+        mapRef.current.removeSource("route");
+      }
+      return;
+    }
 
     try {
-      const res = await axios.get("https://rsapi.goong.io/Direction", {
-        params: {
-          origin: `${waypoints[0].locationLatitude},${waypoints[0].locationLongtitude}`,
-          destination: `${waypoints[waypoints.length - 1].locationLatitude},${
-            waypoints[waypoints.length - 1].locationLongtitude
-          }`,
-          vehicle: "car",
-          waypoint: waypoints
-            .slice(1, -1)
-            .map((wp) => `${wp.locationLatitude},${wp.locationLongtitude}`)
-            .join("|"),
-          api_key: goongApiKey,
+      if (mapRef.current.getLayer("route")) {
+        mapRef.current.removeLayer("route");
+      }
+      if (mapRef.current.getSource("route")) {
+        mapRef.current.removeSource("route");
+      }
+
+      let allCoords: any[] = [];
+
+      for (let i = 0; i < waypoints.length - 1; i++) {
+        const start = waypoints[i];
+        const end = waypoints[i + 1];
+
+        const origin = `${start.locationLatitude},${start.locationLongtitude}`;
+        const destination = `${end.locationLatitude},${end.locationLongtitude}`;
+
+        const res = await axios.get("https://rsapi.goong.io/Direction", {
+          params: {
+            origin,
+            destination,
+            vehicle: "car",
+            optimize: false,
+            api_key: goongApiKey,
+          },
+        });
+
+        const route = res.data.routes?.[0];
+        if (!route) {
+          console.error(`Không có route từ điểm ${i} đến ${i + 1}`);
+          continue;
+        }
+
+        const coordsSegment = polyline.decode(route.overview_polyline.points);
+
+        if (i === 0) {
+          allCoords.push(...coordsSegment);
+        } else {
+          allCoords.push(...coordsSegment.slice(1));
+        }
+      }
+
+      if (allCoords.length === 0) return;
+
+      const geoJSON = {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
+        },
+      };
+
+      mapRef.current.addSource("route", {
+        type: "geojson",
+        data: geoJSON,
+      });
+
+      mapRef.current.addLayer({
+        id: "route",
+        type: "line",
+        source: "route",
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+        paint: {
+          "line-color": "#1e88e5",
+          "line-width": 8,
         },
       });
 
-      const route = res.data.routes[0];
-      const geometry_string = route.overview_polyline.points;
+      const bounds = waypoints.reduce(
+        (b, wp) =>
+          b.extend([
+            parseFloat(wp.locationLongtitude),
+            parseFloat(wp.locationLatitude),
+          ]),
+        new GoongMap.LngLatBounds(
+          [
+            parseFloat(waypoints[0].locationLongtitude),
+            parseFloat(waypoints[0].locationLatitude),
+          ],
+          [
+            parseFloat(waypoints[0].locationLongtitude),
+            parseFloat(waypoints[0].locationLatitude),
+          ]
+        )
+      );
 
-      const geoJSON = polyline.toGeoJSON(geometry_string); // convert polyline to GeoJSON
-
-      if (mapRef.current.getSource("route")) {
-        (mapRef.current.getSource("route") as any).setData(geoJSON);
-      } else {
-        // Tìm lớp symbol đầu tiên (nếu bạn cần thêm dưới lớp symbol như ví dụ gốc)
-        let firstSymbolId = "";
-        const layers = mapRef.current.getStyle().layers;
-        for (let i = 0; i < layers.length; i++) {
-          if (layers[i].type === "symbol") {
-            firstSymbolId = layers[i].id;
-            break;
-          }
-        }
-
-        mapRef.current.addSource("route", {
-          type: "geojson",
-          data: geoJSON,
-        });
-
-        mapRef.current.addLayer(
-          {
-            id: "route",
-            type: "line",
-            source: "route",
-            layout: {
-              "line-join": "round",
-              "line-cap": "round",
-            },
-            paint: {
-              "line-color": "#1e88e5",
-              "line-width": 8,
-            },
-          },
-          firstSymbolId || undefined // thêm phía dưới lớp symbol đầu tiên nếu có
-        );
-      }
+      mapRef.current.fitBounds(bounds, { padding: 60 });
     } catch (error) {
-      console.error("Lỗi khi gọi directions API:", error);
+      console.error("Lỗi khi vẽ từng đoạn route:", error);
     }
   };
 
@@ -172,15 +219,14 @@ const CreateRoute = () => {
 
       mapRef.current = map;
 
-      // Gán GoongMap *sau cùng*
       setGoongMap({
         ...goong,
         Marker: mod.Marker,
         Popup: mod.Popup,
         polyline: mod.polyline,
+        LngLatBounds: mod.LngLatBounds,
       });
 
-      // Đặt marker vị trí người dùng
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => {
           const userPos = [pos.coords.longitude, pos.coords.latitude];
@@ -194,32 +240,41 @@ const CreateRoute = () => {
     });
 
     return () => {
-      markers.forEach((m) => m.remove());
+      markers.forEach((m: any) => m.remove());
       mapRef.current?.remove();
     };
   }, []);
 
   useEffect(() => {
-    if (!GoongMap || !mapRef.current) return;
-
-    const handleMapClick = (e: any) => {
-      const { lng, lat } = e.lngLat;
-      addWaypoint(lat, lng);
-    };
-
-    mapRef.current.on("click", handleMapClick);
-
-    return () => {
-      mapRef.current?.off("click", handleMapClick);
-    };
-  }, [GoongMap]);
-
-  useEffect(() => {
     if (GoongMap) drawRoute();
   }, [waypoints, GoongMap]);
 
-  const addWaypoint = (lat: number, lng: number) => {
-    console.log("Thêm waypoint tại:", lat, lng);
+  const fetchSuggestions = debounce(async (query: string) => {
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get("https://rsapi.goong.io/Place/AutoComplete", {
+        params: {
+          api_key: goongApiKey,
+          input: query,
+          location: "10.762622,106.660172",
+        },
+      });
+      setSuggestions(res.data.predictions);
+    } catch (error) {
+      console.error("Lỗi khi lấy gợi ý địa điểm:", error);
+    }
+  }, 300);
+
+  useEffect(() => {
+    fetchSuggestions(searchQuery);
+    return () => fetchSuggestions.cancel();
+  }, [searchQuery]);
+
+  const addWaypoint = (lat: number, lng: number, name: string) => {
     if (!GoongMap) {
       console.warn("GoongMap chưa sẵn sàng");
       return;
@@ -229,7 +284,7 @@ const CreateRoute = () => {
       id: Date.now().toString(),
       locationLatitude: lat.toFixed(6),
       locationLongtitude: lng.toFixed(6),
-      locationName: "",
+      locationName: name,
       index: waypoints.length,
     };
 
@@ -239,7 +294,35 @@ const CreateRoute = () => {
       const marker = new GoongMap.Marker({ color: "#1976d2" })
         .setLngLat([lng, lat])
         .addTo(mapRef.current);
-      setMarkers((prev) => [...prev, marker]);
+      setMarkers((prev) => ({ ...prev, [newWp.id]: marker }));
+    }
+
+    if (waypoints.length === 0) {
+      mapRef.current.flyTo({
+        center: [lng, lat],
+        zoom: 15,
+        speed: 1.2,
+      });
+    }
+  };
+
+  const handleSelectSuggestion = async (
+    placeId: string,
+    description: string
+  ) => {
+    try {
+      const res = await axios.get("https://rsapi.goong.io/Place/Detail", {
+        params: {
+          api_key: goongApiKey,
+          place_id: placeId,
+        },
+      });
+      const { lat, lng } = res.data.result.geometry.location;
+      addWaypoint(lat, lng, description);
+      setSearchQuery("");
+      setSuggestions([]);
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết địa điểm:", error);
     }
   };
 
@@ -254,7 +337,7 @@ const CreateRoute = () => {
       const newWaypoints = arrayMove(wps, oldIdx, newIdx);
       return newWaypoints.map((wp, i) => ({
         ...wp,
-        index: i, // nếu bạn vẫn cần field này để hiển thị số thứ tự
+        index: i,
       }));
     });
   };
@@ -270,62 +353,110 @@ const CreateRoute = () => {
 
   return (
     <motion.div
-      initial={{ y: 40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col items-center gap-4 p-4"
+      className="relative w-full h-screen flex flex-col"
     >
-      <Input
-        placeholder="Tên hành trình"
-        value={routeName}
-        onChange={(e) => setRouteName(e.target.value)}
-        className="w-full max-w-xl"
-      />
+      <h2 className="text-2xl font-semibold self-center mb-10">
+        Tạo hành trình
+      </h2>
+      {/* Bản đồ chiếm phần còn lại */}
+      <div className="relative w-full flex-1 overflow-hidden">
+        {/* Fullscreen map (background) */}
+        <div
+          ref={mapContainer}
+          className="absolute top-0 left-0 w-full h-full"
+        />
 
-      <div
-        ref={mapContainer}
-        className="w-full h-[400px] rounded-lg overflow-hidden"
-      />
+        {/* Top input bar (overlapping the map) */}
+        <div className="absolute top-0 left-0 w-full flex items-center justify-between p-4 z-10">
+          {/* Search input field on the left */}
+          <div className="w-96">
+            <Input
+              placeholder="Tìm kiếm địa điểm..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white shadow-md"
+            />
+            {suggestions.length > 0 && (
+              <ul className="absolute z-40 w-96 bg-white border rounded shadow-lg mt-1 max-h-60 overflow-y-auto">
+                {suggestions.map((suggestion) => (
+                  <li
+                    key={suggestion.place_id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() =>
+                      handleSelectSuggestion(
+                        suggestion.place_id,
+                        suggestion.description
+                      )
+                    }
+                  >
+                    {suggestion.description}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
 
-      <div className="w-full max-w-xl">
-        <h3 className="font-semibold text-lg">Danh sách waypoint</h3>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={waypoints.map((w) => w.id)}
-            strategy={verticalListSortingStrategy}
+        {/* Sidebar for waypoint list on the right (overlapping the map) */}
+        <div className="absolute top-0 right-0 w-96 h-full bg-white shadow-lg z-10 p-4 overflow-y-auto">
+          <div className="w-full mb-10 self-center">
+            <Input
+              placeholder="Tên hành trình"
+              value={routeName}
+              onChange={(e) => setRouteName(e.target.value)}
+              className="w-full bg-white shadow-md"
+            />
+          </div>
+          <h3 className="font-semibold text-lg mb-4">Danh sách địa điểm</h3>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {waypoints.map((wp, i) => (
-              <SortableItem
-                key={wp.id}
-                id={wp.id}
-                label={wp.locationName}
-                onNameChange={(name) =>
-                  setWaypoints((wps) =>
-                    wps.map((w) =>
-                      w.id === wp.id ? { ...w, locationName: name } : w
+            <SortableContext
+              items={waypoints.map((w) => w.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {waypoints.map((wp, i) => (
+                <SortableItem
+                  key={wp.id}
+                  id={wp.id}
+                  label={wp.locationName}
+                  onNameChange={(name) =>
+                    setWaypoints((wps) =>
+                      wps.map((w) =>
+                        w.id === wp.id ? { ...w, locationName: name } : w
+                      )
                     )
-                  )
-                }
-                onRemove={() => {
-                  markers[i]?.remove();
-                  setWaypoints((wps) =>
-                    wps
-                      .filter((w) => w.id !== wp.id)
-                      .map((w, idx) => ({ ...w, index: idx }))
-                  );
-                  setMarkers((mks) => mks.filter((_, idx) => idx !== i));
-                }}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-      </div>
+                  }
+                  onRemove={() => {
+                    const marker = markers[wp.id];
+                    if (marker) marker.remove();
 
-      <Button onClick={handleSubmit}>Gửi tuyến đường</Button>
+                    setMarkers((prev) => {
+                      const updated = { ...prev };
+                      delete updated[wp.id];
+                      return updated;
+                    });
+
+                    setWaypoints((wps) =>
+                      wps
+                        .filter((w) => w.id !== wp.id)
+                        .map((w, idx) => ({ ...w, index: idx }))
+                    );
+                  }}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+          <Button onClick={handleSubmit} className="mt-4 w-full">
+            Gửi hành trình
+          </Button>
+        </div>
+      </div>
     </motion.div>
   );
 };

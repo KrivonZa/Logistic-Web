@@ -55,7 +55,7 @@ const Header = ({
   }, [lastScrollY]);
 
   const handleLogout = () => {
-    sessionStorage.clear();
+    localStorage.clear();
     router.replace("/login");
   };
 
@@ -70,7 +70,7 @@ const Header = ({
   return (
     <header
       className={clsx(
-        "fixed top-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white/90 z-10",
+        "fixed top-0 h-16 flex items-center justify-between px-6 border-b shadow-sm bg-white/90 z-50",
         "transition-all duration-300", // Animation mượt mà
         isSidebarOpen ? "sm:left-64 right-0" : "left-0 right-0", // Chỉ animate left ở sm trở lên
         showHeader ? "top-0 opacity-100" : "-top-20 opacity-0" // Hiệu ứng cuộn dọc

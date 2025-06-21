@@ -29,10 +29,10 @@ const sidebarLinks = [
 const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const role = sessionStorage.getItem("role");
+  const role = localStorage.getItem("role");
 
   const handleLogout = () => {
-    sessionStorage.clear();
+    localStorage.clear();
     router.replace("/login");
   };
 
