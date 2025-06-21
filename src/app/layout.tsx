@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import ReduxProvider from "@/app/provider";
 import FCMListener from "@/components/FCMListener";
-import "leaflet/dist/leaflet.css";
+import "@goongmaps/goong-js/dist/goong-js.css";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",

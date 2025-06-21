@@ -1,15 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createRoutes } from "./thunk";
-import { createRoute } from "@/types/route";
+import { createRoutes, getRoutesByCompany } from "./thunk";
+import { Routes } from "@/types/route";
 
 type stateType = {
   loading: boolean;
-  create: createRoute[] | [];
+  routes: Routes[] | [];
 };
 
 const initialState: stateType = {
   loading: false,
-  create: [],
+  routes: [],
 };
 
 export const manageRouteSlice = createSlice({
@@ -25,6 +25,16 @@ export const manageRouteSlice = createSlice({
         state.loading = false;
       })
       .addCase(createRoutes.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(getRoutesByCompany.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getRoutesByCompany.fulfilled, (state, action) => {
+        state.loading = false;
+        state.routes = action.payload.data;
+      })
+      .addCase(getRoutesByCompany.rejected, (state) => {
         state.loading = false;
       });
   },

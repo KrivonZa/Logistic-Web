@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-import "@goongmaps/goong-js/dist/goong-js.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -22,24 +20,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { X } from "lucide-react";
 import axios from "axios";
+import { Spinner } from "@/components/ui/spinner";
 import polyline from "@mapbox/polyline";
 import debounce from "lodash/debounce";
-
-const GoongJS = dynamic(() => import("@goongmaps/goong-js"), { ssr: false });
-
-export interface createWaypoints {
-  id: string;
-  locationLatitude: string;
-  locationLongtitude: string;
-  locationName: string;
-  index: number;
-}
-
-export interface createRoute {
-  routeID: string;
-  routeName: string;
-  waypoints: createWaypoints[];
-}
+import { createRoute, createWaypoints } from "@/types/route";
+import { useAppDispatch } from "@/stores";
+import { useRoute } from "@/hooks/useRoute";
+import { createRoutes } from "@/stores/routeManager/thunk";
 
 const SortableItem = ({
   id,
@@ -89,6 +76,8 @@ const CreateRoute = () => {
   const [markers, setMarkers] = useState<Record<string, any>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const dispatch = useAppDispatch();
+  const { loading } = useRoute();
 
   const goongApiKey = process.env.NEXT_PUBLIC_GOONG_API_KEY!;
   const goongMaptilesKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY!;
@@ -285,7 +274,7 @@ const CreateRoute = () => {
       locationLatitude: lat.toFixed(6),
       locationLongtitude: lng.toFixed(6),
       locationName: name,
-      index: waypoints.length,
+      index: waypoints.length + 1,
     };
 
     setWaypoints((wps) => [...wps, newWp]);
@@ -337,18 +326,18 @@ const CreateRoute = () => {
       const newWaypoints = arrayMove(wps, oldIdx, newIdx);
       return newWaypoints.map((wp, i) => ({
         ...wp,
-        index: i,
+        index: i + 1,
       }));
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const payload: createRoute = {
-      routeID: crypto.randomUUID(),
       routeName,
       waypoints,
     };
-    console.log("Route gửi:", payload);
+    const result = await dispatch(createRoutes(payload)).unwrap();
+    console.log(result)
   };
 
   return (
@@ -358,20 +347,12 @@ const CreateRoute = () => {
       transition={{ duration: 0.3 }}
       className="relative w-full h-screen flex flex-col"
     >
-      <h2 className="text-2xl font-semibold self-center mb-10">
-        Tạo hành trình
-      </h2>
-      {/* Bản đồ chiếm phần còn lại */}
       <div className="relative w-full flex-1 overflow-hidden">
-        {/* Fullscreen map (background) */}
         <div
           ref={mapContainer}
           className="absolute top-0 left-0 w-full h-full"
         />
-
-        {/* Top input bar (overlapping the map) */}
         <div className="absolute top-0 left-0 w-full flex items-center justify-between p-4 z-10">
-          {/* Search input field on the left */}
           <div className="w-96">
             <Input
               placeholder="Tìm kiếm địa điểm..."
@@ -400,8 +381,10 @@ const CreateRoute = () => {
           </div>
         </div>
 
-        {/* Sidebar for waypoint list on the right (overlapping the map) */}
         <div className="absolute top-0 right-0 w-96 h-full bg-white shadow-lg z-10 p-4 overflow-y-auto">
+          <h2 className="text-2xl font-semibold self-center mb-10">
+            Tạo hành trình
+          </h2>
           <div className="w-full mb-10 self-center">
             <Input
               placeholder="Tên hành trình"
@@ -445,15 +428,23 @@ const CreateRoute = () => {
                     setWaypoints((wps) =>
                       wps
                         .filter((w) => w.id !== wp.id)
-                        .map((w, idx) => ({ ...w, index: idx }))
+                        .map((w, idx) => ({ ...w, index: idx + 1 }))
                     );
                   }}
                 />
               ))}
             </SortableContext>
           </DndContext>
-          <Button onClick={handleSubmit} className="mt-4 w-full">
-            Gửi hành trình
+          <Button
+            onClick={handleSubmit}
+            className="mt-4 w-full"
+            disabled={loading}
+          >
+            {loading ? (
+              <Spinner size={"medium"} className="text-gray-700" />
+            ) : (
+              <>Gửi hành trình</>
+            )}
           </Button>
         </div>
       </div>

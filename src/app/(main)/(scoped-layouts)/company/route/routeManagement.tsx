@@ -1,270 +1,336 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import polyline from "@mapbox/polyline";
-import { LatLngExpression } from "leaflet";
-import { MapPin, Plus } from "lucide-react";
-import { renderToString } from "react-dom/server";
+import { Plus, X, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-
-// Tải các thành phần react-leaflet bằng dynamic import
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  {
-    ssr: false,
-  }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  {
-    ssr: false,
-  }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  {
-    ssr: false,
-  }
-);
-const Polyline = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Polyline),
-  {
-    ssr: false,
-  }
-);
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
-
-// Dữ liệu mock với ít nhất 5 điểm mỗi route
-const mockRoutes = [
-  {
-    id: "r1",
-    name: "Route A",
-    locations: [
-      { name: "Điểm 1 - Quận 1", lat: 10.776889, lng: 106.700806 },
-      { name: "Điểm 2 - Quận 3", lat: 10.783333, lng: 106.683333 },
-      { name: "Điểm 3 - Quận 7", lat: 10.733333, lng: 106.716667 },
-      { name: "Điểm 4 - Bình Thạnh", lat: 10.803333, lng: 106.716667 },
-      { name: "Điểm 5 - Thủ Đức", lat: 10.85, lng: 106.766667 },
-    ],
-    drivers: ["Nguyễn Văn A", "Trần Văn B"],
-  },
-  {
-    id: "r2",
-    name: "Route B",
-    locations: [
-      { name: "Điểm 1 - Quận 5", lat: 10.753333, lng: 106.666667 },
-      { name: "Điểm 2 - Quận 10", lat: 10.766667, lng: 106.666667 },
-      { name: "Điểm 3 - Tân Bình", lat: 10.8, lng: 106.65 },
-      { name: "Điểm 4 - Gò Vấp", lat: 10.833333, lng: 106.666667 },
-      { name: "Điểm 5 - Quận 12", lat: 10.866667, lng: 106.633333 },
-    ],
-    drivers: ["Lê Thị C", "Phạm Văn D"],
-  },
-];
-
-// Định nghĩa kiểu cho route
-interface Location {
-  name: string;
-  lat: number;
-  lng: number;
-}
-
-interface Route {
-  id: string;
-  name: string;
-  locations: Location[];
-  drivers: string[];
-}
-
-// Component xử lý sự kiện click trên bản đồ
-const ClickHandler = ({
-  onMapClick,
-}: {
-  onMapClick: (lat: number, lng: number) => void;
-}) => {
-  const { useMapEvents } = require("react-leaflet");
-  useMapEvents({
-    click(e: L.LeafletMouseEvent) {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-};
-
-// Tạo divIcon từ Lucide React
-const createLucideIcon = () => {
-  if (typeof window === "undefined") return undefined;
-  const iconHtml = renderToString(<MapPin className="w-6 h-6 text-red-500" />);
-  return L.divIcon({
-    html: iconHtml,
-    className: "lucide-marker",
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-    popupAnchor: [0, -24],
-  });
-};
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command";
+import axios from "axios";
+import { useAppDispatch } from "@/stores";
+import { getRoutesByCompany } from "@/stores/routeManager/thunk";
+import { useRoute } from "@/hooks/useRoute";
+import { Routes, Waypoint } from "@/types/route";
+import debounce from "lodash/debounce";
 
 const RouteManagement = () => {
-  const [routes, setRoutes] = useState<Route[]>(mockRoutes);
-  const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<Routes | null>(null);
   const [newLocation, setNewLocation] = useState("");
-  const [routePath, setRoutePath] = useState<LatLngExpression[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    { place_id: string; description: string }[]
+  >([]);
+  const [GoongMap, setGoongMap] = useState<any>(null);
+  const mapRef = useRef<any>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const [markers, setMarkers] = useState<Record<string, any>>({});
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading, routes } = useRoute();
 
-  // Tạo divIcon trong useMemo
-  const lucideIcon = useMemo(() => createLucideIcon(), []);
+  const goongApiKey = process.env.NEXT_PUBLIC_GOONG_API_KEY!;
+  const goongMaptilesKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY!;
 
-  // Lấy tuyến đường thực tế từ OSRM
-  const fetchRoutePath = async (locations: Location[]) => {
-    if (locations.length < 2) {
-      setRoutePath([]);
+  // Debounced function to fetch location suggestions
+  const fetchSuggestions = debounce(async (input: string) => {
+    if (!input.trim()) {
+      setSuggestions([]);
       return;
     }
 
-    const coordinates = locations
-      .map((loc) => `${loc.lng},${loc.lat}`)
-      .join(";");
     try {
-      const response = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=polyline&steps=true`
-      );
-      const data = await response.json();
-      console.log("OSRM response:", data); // Log để kiểm tra
-      if (data.code === "Ok" && data.routes && data.routes.length > 0) {
-        const decodedPath = polyline.decode(data.routes[0].geometry);
-        const latLngPath: LatLngExpression[] = decodedPath.map(([lat, lng]) => [
-          lat,
-          lng,
-        ]);
-        setRoutePath(latLngPath);
-        console.log("Decoded routePath:", latLngPath); // Log để kiểm tra
-      } else {
-        console.warn(
-          "Không tìm thấy tuyến đường từ OSRM:",
-          data.message || "No routes found"
-        );
-        setRoutePath([]);
-      }
+      const res = await axios.get("https://rsapi.goong.io/Place/AutoComplete", {
+        params: {
+          api_key: goongApiKey,
+          input,
+          location: "10.776889,106.700806",
+        },
+      });
+      setSuggestions(res.data.predictions || []);
     } catch (error) {
-      console.error("Lỗi khi lấy tuyến đường:", error);
-      setRoutePath([]);
+      console.error("Error fetching suggestions:", error);
+      setSuggestions([]);
     }
-  };
+  }, 300);
 
-  // Cập nhật tuyến đường khi selectedRoute thay đổi
+  // Fetch routes on mount
   useEffect(() => {
-    if (selectedRoute && Array.isArray(selectedRoute.locations)) {
-      fetchRoutePath(selectedRoute.locations);
-    } else {
-      setRoutePath([]);
-    }
-  }, [selectedRoute]);
+    dispatch(getRoutesByCompany({ page: 1, limit: 10 }));
+  }, [dispatch]);
 
-  const handleAddLocationByName = async () => {
-    if (!selectedRoute || !newLocation.trim()) return;
+  // Initialize Goong Map
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    let map: any;
+    import("@goongmaps/goong-js").then((mod) => {
+      const goong = mod.default;
+      goong.accessToken = goongMaptilesKey;
+
+      map = new goong.Map({
+        container: mapContainer.current!,
+        style: "https://tiles.goong.io/assets/goong_map_web.json",
+        center: [106.700806, 10.776889],
+        zoom: 13,
+      });
+
+      mapRef.current = map;
+
+      setGoongMap({
+        ...goong,
+        Marker: mod.Marker,
+        Popup: mod.Popup,
+        LngLatBounds: mod.LngLatBounds,
+      });
+    });
+
+    return () => {
+      if (map) map.remove();
+    };
+  }, []);
+
+  // Draw route on map
+  const drawRoute = async () => {
+    if (
+      !GoongMap ||
+      !mapRef.current ||
+      !selectedRoute ||
+      !Array.isArray(selectedRoute.Waypoint) ||
+      selectedRoute.Waypoint.length < 2
+    ) {
+      if (mapRef.current?.getLayer("route")) {
+        mapRef.current.removeLayer("route");
+      }
+      if (mapRef.current?.getSource("route")) {
+        mapRef.current.removeSource("route");
+      }
+      Object.values(markers).forEach((m) => m.remove());
+      setMarkers({});
+      return;
+    }
 
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          newLocation
-        )}&addressdetails=1&limit=1`
-      );
-      const data = await response.json();
-      if (data.length > 0) {
-        const { lat, lon } = data[0];
-        const newLocationData = {
-          name: newLocation.trim(),
-          lat: parseFloat(lat),
-          lng: parseFloat(lon),
-        };
-        const updatedRoutes = routes.map((route) =>
-          route.id === selectedRoute.id
-            ? {
-                ...route,
-                locations: [...route.locations, newLocationData],
-              }
-            : route
-        );
-        setRoutes(updatedRoutes);
-        setSelectedRoute({
-          ...selectedRoute,
-          locations: [...selectedRoute.locations, newLocationData],
-        });
-        setNewLocation("");
-        // Cập nhật tuyến đường
-        fetchRoutePath([...selectedRoute.locations, newLocationData]);
-      } else {
-        alert("Không tìm thấy địa điểm! Vui lòng thử lại.");
+      // Remove old layer and source
+      if (mapRef.current.getLayer("route")) {
+        mapRef.current.removeLayer("route");
       }
+      if (mapRef.current.getSource("route")) {
+        mapRef.current.removeSource("route");
+      }
+
+      // Remove old markers
+      Object.values(markers).forEach((m) => m.remove());
+      setMarkers({});
+
+      // Filter valid waypoints
+      const validWaypoints = selectedRoute.Waypoint.filter((wp) => {
+        if (!wp.geoLocation || typeof wp.geoLocation !== "string") return false;
+        try {
+          const geo = JSON.parse(wp.geoLocation);
+          return (
+            geo.type === "Point" &&
+            Array.isArray(geo.coordinates) &&
+            geo.coordinates.length === 2 &&
+            !isNaN(geo.coordinates[0]) &&
+            !isNaN(geo.coordinates[1])
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      if (validWaypoints.length < 2) {
+        console.warn("Not enough valid waypoints to draw route");
+        return;
+      }
+
+      // Add new markers
+      const newMarkers: Record<string, any> = {};
+      validWaypoints.forEach((wp, i) => {
+        const geo = JSON.parse(wp.geoLocation);
+        const [lng, lat] = geo.coordinates;
+        const marker = new GoongMap.Marker({ color: "#1976d2" })
+          .setLngLat([lng, lat])
+          .setPopup(new GoongMap.Popup().setText(`Điểm ${i + 1}`))
+          .addTo(mapRef.current);
+        newMarkers[`wp-${i}`] = marker;
+      });
+      setMarkers(newMarkers);
+
+      // Fetch route coordinates
+      let allCoords: number[][] = [];
+      for (let i = 0; i < validWaypoints.length - 1; i++) {
+        const start = validWaypoints[i];
+        const end = validWaypoints[i + 1];
+
+        const startGeo = JSON.parse(start.geoLocation);
+        const endGeo = JSON.parse(end.geoLocation);
+        const origin = `${startGeo.coordinates[1]},${startGeo.coordinates[0]}`; // lat,lng
+        const destination = `${endGeo.coordinates[1]},${endGeo.coordinates[0]}`; // lat,lng
+
+        const res = await axios.get("https://rsapi.goong.io/Direction", {
+          params: {
+            origin,
+            destination,
+            vehicle: "car",
+            optimize: false,
+            api_key: goongApiKey,
+          },
+        });
+
+        const route = res.data.routes?.[0];
+        if (!route) {
+          console.warn(`No route from point ${i} to ${i + 1}`);
+          continue;
+        }
+
+        const coordsSegment = polyline.decode(route.overview_polyline.points);
+        if (i === 0) {
+          allCoords.push(...coordsSegment);
+        } else {
+          allCoords.push(...coordsSegment.slice(1));
+        }
+      }
+
+      if (allCoords.length === 0) {
+        console.warn("No coordinates to draw route");
+        return;
+      }
+
+      // Draw route
+      const geoJSON = {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
+        },
+      };
+
+      mapRef.current.addSource("route", {
+        type: "geojson",
+        data: geoJSON,
+      });
+
+      mapRef.current.addLayer({
+        id: "route",
+        type: "line",
+        source: "route",
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+        paint: {
+          "line-color": "#1e88e5",
+          "line-width": 8,
+        },
+      });
+
+      // Adjust map bounds
+      const bounds = validWaypoints.reduce((b, wp) => {
+        const geo = JSON.parse(wp.geoLocation);
+        const [lng, lat] = geo.coordinates;
+        return b.extend([lng, lat]);
+      }, new GoongMap.LngLatBounds(JSON.parse(validWaypoints[0].geoLocation).coordinates, JSON.parse(validWaypoints[0].geoLocation).coordinates));
+      mapRef.current.fitBounds(bounds, { padding: 60 });
     } catch (error) {
-      console.error("Lỗi khi tìm địa điểm:", error);
-      alert("Đã xảy ra lỗi khi tìm địa điểm.");
+      console.error("Error drawing route:", error);
     }
   };
 
-  const handleMapClick = (lat: number, lng: number) => {
+  // Update route when selectedRoute or GoongMap changes
+  useEffect(() => {
+    if (GoongMap && selectedRoute) {
+      drawRoute();
+    }
+  }, [selectedRoute, GoongMap]);
+
+  // Add location by name
+  const handleAddLocationByName = async (placeId: string) => {
     if (!selectedRoute) return;
-    const newLocationData = {
-      name: `Điểm mới ${Date.now().toString().slice(-4)}`,
-      lat,
-      lng,
-    };
-    const updatedRoutes = routes.map((route) =>
-      route.id === selectedRoute.id
-        ? {
-            ...route,
-            locations: [...route.locations, newLocationData],
-          }
-        : route
-    );
-    setRoutes(updatedRoutes);
-    setSelectedRoute({
-      ...selectedRoute,
-      locations: [...selectedRoute.locations, newLocationData],
-    });
-    // Cập nhật tuyến đường
-    fetchRoutePath([...selectedRoute.locations, newLocationData]);
+
+    try {
+      const detailRes = await axios.get("https://rsapi.goong.io/Place/Detail", {
+        params: {
+          api_key: goongApiKey,
+          place_id: placeId,
+        },
+      });
+
+      const { lat, lng } = detailRes.data.result.geometry.location;
+      const newWaypoint: Waypoint = {
+        waypointID: `wp-${Date.now()}`,
+        routeID: selectedRoute.routeID,
+        geoLocation: JSON.stringify({
+          type: "Point",
+          coordinates: [lng, lat],
+        }),
+        index: selectedRoute.Waypoint.length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      setSelectedRoute({
+        ...selectedRoute,
+        Waypoint: [...selectedRoute.Waypoint, newWaypoint],
+      });
+      setNewLocation("");
+      setSuggestions([]);
+    } catch (error) {
+      console.error("Error finding location:", error);
+      alert("An error occurred while finding the location.");
+    }
   };
 
-  const handleSelectRoute = (route: Route) => {
-    if (route && Array.isArray(route.locations)) {
+  const handleSelectRoute = (route: Routes) => {
+    typeof console.log("Type of Waypoint:", route.Waypoint);
+    if (route && Array.isArray(route.Waypoint)) {
       setSelectedRoute(route);
     } else {
-      console.warn("Route không hợp lệ:", route);
+      console.warn("Invalid route:", route);
       setSelectedRoute(null);
     }
   };
 
-  // Xóa địa điểm
-  const handleDeleteLocation = (index: number) => {
-    if (!selectedRoute) return;
-    const updatedLocations = selectedRoute.locations.filter(
-      (_, i) => i !== index
-    );
-    const updatedRoutes = routes.map((route) =>
-      route.id === selectedRoute.id
-        ? { ...route, locations: updatedLocations }
-        : route
-    );
-    setRoutes(updatedRoutes);
-    setSelectedRoute({ ...selectedRoute, locations: updatedLocations });
-    fetchRoutePath(updatedLocations);
+  // Move waypoint up
+  const handleMoveUp = (index: number) => {
+    if (!selectedRoute || index === 0) return;
+    const updatedWaypoints = [...selectedRoute.Waypoint];
+    [updatedWaypoints[index - 1], updatedWaypoints[index]] = [
+      { ...updatedWaypoints[index], index: index - 1 },
+      { ...updatedWaypoints[index - 1], index },
+    ];
+    setSelectedRoute({ ...selectedRoute, Waypoint: updatedWaypoints });
   };
 
-  const center = useMemo(() => [10.776889, 106.700806] as LatLngExpression, []);
+  const handleMoveDown = (index: number) => {
+    if (!selectedRoute || index === selectedRoute.Waypoint.length - 1) return;
+    const updatedWaypoints = [...selectedRoute.Waypoint];
+    [updatedWaypoints[index], updatedWaypoints[index + 1]] = [
+      { ...updatedWaypoints[index + 1], index },
+      { ...updatedWaypoints[index], index: index + 1 },
+    ];
+    setSelectedRoute({ ...selectedRoute, Waypoint: updatedWaypoints });
+  };
+
+  // Delete location
+  const handleDeleteLocation = (index: number) => {
+    if (!selectedRoute) return;
+    const updatedWaypoints = selectedRoute.Waypoint.filter(
+      (_, i) => i !== index
+    ).map((wp, i) => ({ ...wp, index: i }));
+    setSelectedRoute({ ...selectedRoute, Waypoint: updatedWaypoints });
+  };
 
   return (
     <motion.div
@@ -276,145 +342,149 @@ const RouteManagement = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Quản lý tuyến đường</h2>
         <Button onClick={() => router.push("/company/create-route")}>
-          <Plus className="h-16 w-16 text-white" /> Tạo route mới
+          <Plus className="h-16 w-16 text-white" /> Tạo tuyến mới
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Danh sách route */}
+        {/* Route list */}
         <Card className="h-fit">
           <CardHeader>
             <CardTitle>Tuyến đường</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-[300px] space-y-2">
-              {routes.map((route) => (
-                <Button
-                  key={route.id}
-                  variant={
-                    selectedRoute?.id === route.id ? "default" : "outline"
-                  }
-                  className="w-full justify-start"
-                  onClick={() => handleSelectRoute(route)}
-                >
-                  {route.name}
-                </Button>
-              ))}
-            </ScrollArea>
+            {loading ? (
+              <p>Loading routes...</p>
+            ) : Array.isArray(routes) && routes.length > 0 ? (
+              <ScrollArea className="max-h-[300px] space-y-2">
+                {routes.map((route) => (
+                  <Button
+                    key={route.routeID}
+                    variant={
+                      selectedRoute?.routeID === route.routeID
+                        ? "default"
+                        : "outline"
+                    }
+                    className="w-full justify-start"
+                    onClick={() => handleSelectRoute(route)}
+                  >
+                    {route.routeName}
+                  </Button>
+                ))}
+              </ScrollArea>
+            ) : (
+              <p>No routes available.</p>
+            )}
           </CardContent>
         </Card>
 
-        {/* Bản đồ */}
+        {/* Map */}
         <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
             <CardTitle>Bản đồ tuyến đường</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[400px] w-full rounded-md">
-              <MapContainer
-                center={center}
-                zoom={13}
+              <div
+                ref={mapContainer}
                 className="h-full w-full rounded-md z-0"
-              >
-                <TileLayer
-                  attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Tiles by <a href="https://carto.com">Carto</a>'
-                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                />
-                {selectedRoute &&
-                  Array.isArray(selectedRoute.locations) &&
-                  lucideIcon && (
-                    <>
-                      {selectedRoute.locations.map((loc, i) => (
-                        <Marker
-                          key={i}
-                          position={[loc.lat, loc.lng]}
-                          icon={lucideIcon}
-                        >
-                          <Popup>{loc.name}</Popup>
-                        </Marker>
-                      ))}
-                      {routePath.length > 0 && (
-                        <Polyline positions={routePath} color="blue" />
-                      )}
-                    </>
-                  )}
-                <ClickHandler onMapClick={handleMapClick} />
-              </MapContainer>
+              />
             </div>
 
             {selectedRoute && (
               <div className="mt-4 space-y-2">
-                <Label>Thêm địa điểm theo tên:</Label>
-                <div className="flex items-center gap-2">
-                  <Input
+                <Label>Thêm địa điểm bằng tên:</Label>
+                <Command>
+                  <CommandInput
                     placeholder="Nhập địa điểm (ví dụ: Ho Chi Minh City)"
                     value={newLocation}
-                    onChange={(e) => setNewLocation(e.target.value)}
+                    onValueChange={(value: any) => {
+                      setNewLocation(value);
+                      fetchSuggestions(value);
+                    }}
                   />
-                  <Button onClick={handleAddLocationByName}>Thêm</Button>
-                </div>
+                  <CommandList>
+                    {suggestions.length > 0 ? (
+                      suggestions.map((suggestion) => (
+                        <CommandItem
+                          key={suggestion.place_id}
+                          onSelect={() =>
+                            handleAddLocationByName(suggestion.place_id)
+                          }
+                        >
+                          {suggestion.description}
+                        </CommandItem>
+                      ))
+                    ) : (
+                      <CommandEmpty>Không tìm thấy địa điểm.</CommandEmpty>
+                    )}
+                  </CommandList>
+                </Command>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Chi tiết tuyến */}
-      {selectedRoute && Array.isArray(selectedRoute.locations) && (
+      {/* Route details */}
+      {selectedRoute && Array.isArray(selectedRoute.Waypoint) && (
         <Card>
           <CardHeader>
-            <CardTitle>Chi tiết {selectedRoute.name}</CardTitle>
+            <CardTitle>Chi tiết {selectedRoute.routeName}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <h4 className="font-medium">Danh sách địa điểm:</h4>
               <ul className="list-disc list-inside ml-4 space-y-2">
-                {selectedRoute.locations.map((loc, idx) => (
-                  <li key={idx} className="flex items-center justify-between">
-                    <span>
-                      {loc.name} (lat: {loc.lat.toFixed(5)}, lng:{" "}
-                      {loc.lng.toFixed(5)})
-                    </span>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteLocation(idx)}
+                {selectedRoute.Waypoint.map((wp, idx) => {
+                  let coordinates: string = "Invalid";
+                  try {
+                    const geo = JSON.parse(wp.geoLocation);
+                    coordinates = `(${geo.coordinates[1]}, ${geo.coordinates[0]})`;
+                  } catch {
+                    console.warn(
+                      `Invalid geoLocation for waypoint ${wp.waypointID}`
+                    );
+                  }
+                  return (
+                    <li
+                      key={wp.waypointID}
+                      className="flex items-center justify-between"
                     >
-                      Xóa
-                    </Button>
-                  </li>
-                ))}
+                      <span>
+                        Điểm {idx + 1} {coordinates}
+                      </span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMoveUp(idx)}
+                          disabled={idx === 0}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMoveDown(idx)}
+                          disabled={idx === selectedRoute.Waypoint.length - 1}
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteLocation(idx)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
-
             <Separator />
-
-            <div>
-              <h4 className="font-medium mb-2">Tài xế chạy tuyến này:</h4>
-              <Textarea
-                defaultValue={selectedRoute.drivers.join("\n")}
-                rows={selectedRoute.drivers.length + 1}
-                onBlur={(e) => {
-                  const updatedDrivers = e.target.value
-                    .split("\n")
-                    .map((d) => d.trim())
-                    .filter(Boolean);
-                  const updatedRoutes = routes.map((r) =>
-                    r.id === selectedRoute.id
-                      ? { ...r, drivers: updatedDrivers }
-                      : r
-                  );
-                  setRoutes(updatedRoutes);
-                  setSelectedRoute({
-                    ...selectedRoute,
-                    drivers: updatedDrivers,
-                  });
-                }}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Mỗi dòng là 1 tài xế
-              </p>
-            </div>
           </CardContent>
         </Card>
       )}
