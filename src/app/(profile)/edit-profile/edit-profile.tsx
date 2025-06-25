@@ -5,9 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useAccount } from "@/hooks/useAccount";
 import CompanyEditForm from "@/components/layout/profile/companyEditForm";
-import CoordinatorEditForm from "@/components/layout/profile/coordinatorEditForm";
 import AdminEditForm from "@/components/layout/profile/adminEditForm";
-import StaffEditForm from "@/components/layout/profile/staffEditForm";
 
 export default function EditProfile() {
   const { loading, info } = useAccount();
@@ -18,12 +16,8 @@ export default function EditProfile() {
     switch (info.role) {
       case "Company":
         return <CompanyEditForm info={info} />;
-      case "Coordinator":
-        return <CoordinatorEditForm info={info} />;
       case "Admin":
         return <AdminEditForm info={info} />;
-      case "Staff":
-        return <StaffEditForm info={info} />;
       default:
         return (
           <p className="text-muted-foreground">

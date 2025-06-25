@@ -44,12 +44,6 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       case "Company":
         router.push("/company/dashboard");
         break;
-      case "Coordinator":
-        router.push("/coordinator/dashboard");
-        break;
-      case "Staff":
-        router.push("/staff/dashboard");
-        break;
     }
   };
 

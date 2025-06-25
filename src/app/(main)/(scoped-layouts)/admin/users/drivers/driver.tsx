@@ -38,7 +38,7 @@ const allUsers: User[] = Array.from({ length: 20 }).map((_, i) => ({
   id: (i + 1).toString(),
   avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
   fullName: `Nhân viên ${i + 1}`,
-  email: `coordinator${i + 1}@example.com`,
+  email: `driver${i + 1}@example.com`,
   status: i % 2 === 0 ? "Active" : "Inactive",
 }));
 

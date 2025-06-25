@@ -86,38 +86,6 @@ export default function UserProfile() {
           </>
         );
 
-      case "Coordinator":
-        return (
-          <>
-            <Field
-              label="Công ty trực thuộc"
-              value={detail?.Company?.Account?.fullName ?? ""}
-            />
-            <Field label="Họ và tên" value={info?.fullName ?? ""} />
-            <Field label="Email" value={info?.email ?? ""} />
-            <Field label="Mã nhân viên" value={detail?.employeeCode ?? ""} />
-            <Field label="Số điện thoại" value={detail?.phoneNumber ?? ""} />
-            <Field
-              label="Cập nhật lần cuối"
-              value={
-                detail?.updatedAt
-                  ? new Date(detail.updatedAt).toLocaleDateString("vi-VN")
-                  : ""
-              }
-            />
-          </>
-        );
-
-      case "Staff":
-        return (
-          <>
-            <Field label="Họ và tên" value={info?.fullName ?? ""} />
-            <Field label="Email" value={info?.email ?? ""} />
-            <Field label="Đơn vị công tác" value={detail?.department ?? ""} />
-            <Field label="Mã nhân viên" value={detail?.employeeCode ?? ""} />
-          </>
-        );
-
       case "Admin":
         return (
           <>

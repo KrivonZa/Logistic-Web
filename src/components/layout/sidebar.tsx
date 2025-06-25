@@ -49,9 +49,7 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       children: [
         { href: "/admin/users/customers", label: "Khách hàng" },
         { href: "/admin/users/companies", label: "Công ty" },
-        { href: "/admin/users/coordinators", label: "Nhân viên Công ty" },
         { href: "/admin/users/drivers", label: "Tài xế" },
-        { href: "/admin/users/staffs", label: "Nhân viên Nền tảng" },
       ],
     },
   ],
@@ -66,7 +64,6 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       label: "Quản lý",
       children: [
         { href: "/company/users/drivers", label: "Tài xế" },
-        { href: "/company/users/coordinators", label: "Nhân viên" },
       ],
     },
     {
@@ -78,45 +75,6 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       href: "/company/application-manage",
       icon: <ClipboardList className="h-5 w-5" />,
       label: "Đơn đã gửi",
-    },
-  ],
-  Coordinator: [
-    {
-      href: "/coordinator/dashboard",
-      icon: <Home className="h-5 w-5" />,
-      label: "Trang chủ",
-    },
-    {
-      href: "/coordinator/users/drivers",
-      icon: <Users className="h-5 w-5" />,
-      label: "Tài xế",
-    },
-    {
-      href: "/coordinator/application-manage",
-      icon: <ClipboardList className="h-5 w-5" />,
-      label: "Đơn đã gửi",
-    },
-  ],
-  Staff: [
-    {
-      href: "/staff/dashboard",
-      icon: <Home className="h-5 w-5" />,
-      label: "Trang chủ",
-    },
-    {
-      icon: <ClipboardList className="h-5 w-5" />,
-      label: "Quản lý đơn",
-      children: [
-        {
-          href: "/staff/application-manage/request-company",
-          label: "Doanh nghiệp",
-        },
-        { href: "/staff/application-manage/create-driver", label: "Tài xế" },
-        {
-          href: "/staff/application-manage/create-coordinator",
-          label: "Nhân viên điều phối",
-        },
-      ],
     },
   ],
 };

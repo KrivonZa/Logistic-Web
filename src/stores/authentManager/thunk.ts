@@ -9,7 +9,7 @@ export const login = createAsyncThunk(
       const response = await manageAuthen.login(req);
       const token = response.data?.data.access_token;
       const role = response.data?.data.role;
-      const allowedRoles = ["Company", "Coordinator", "Staff", "Admin"];
+      const allowedRoles = ["Company", "Admin"];
 
       if (!token || !role || !allowedRoles.includes(role)) {
         return rejectWithValue(
@@ -72,7 +72,7 @@ export const googleLogin = createAsyncThunk(
       const tokenResponse = await manageAuthen.googleLogin(code);
       const token = tokenResponse.data?.data.access_token;
       const role = tokenResponse.data?.data.role;
-      const allowedRoles = ["Company", "Coordinator", "Staff", "Admin"];
+      const allowedRoles = ["Company", "Admin"];
 
       if (!token || !role || !allowedRoles.includes(role)) {
         return rejectWithValue(

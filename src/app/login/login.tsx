@@ -58,12 +58,6 @@ export default function Login() {
         case "Company":
           router.push("/company/dashboard");
           break;
-        case "Coordinator":
-          router.push("/coordinator/dashboard");
-          break;
-        case "Staff":
-          router.push("/staff/dashboard");
-          break;
         default:
           toast.error("Tài khoản không có quyền truy cập", {
             style: { backgroundColor: "#ff0033", color: "#fff" },
@@ -84,12 +78,6 @@ export default function Login() {
           break;
         case "Company":
           router.push("/company/dashboard");
-          break;
-        case "Coordinator":
-          router.push("/coordinator/dashboard");
-          break;
-        case "Staff":
-          router.push("/staff/dashboard");
           break;
         default:
           toast.error("Tài khoản không có quyền truy cập", {

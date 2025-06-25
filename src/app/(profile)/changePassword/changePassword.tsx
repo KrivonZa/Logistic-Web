@@ -191,7 +191,5 @@ const ChangePassword = () => {
 
 export default isAuth(ChangePassword, [
   "Admin",
-  "Staff",
   "Company",
-  "Coordinator",
 ]);

@@ -35,17 +35,8 @@ const allNotifications = [
   },
   {
     id: 3,
-    title: "Đơn đăng ký coordinator",
-    sender: "Company",
-    date: "28/05/2025",
-    file: null,
-    type: "text",
-    category: "Yêu cầu",
-  },
-  {
-    id: 4,
     title: "Báo cáo tháng 5",
-    sender: "Staff",
+    sender: "Admin",
     date: "27/05/2025",
     file: "report_may.xlsx",
     type: "xlsx",

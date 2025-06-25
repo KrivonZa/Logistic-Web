@@ -180,4 +180,4 @@ const Settings = () => {
   );
 };
 
-export default isAuth(Settings, ["Admin", "Staff", "Company", "Coordinator"]);
+export default isAuth(Settings, ["Admin", "Company"]);
