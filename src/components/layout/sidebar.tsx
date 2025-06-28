@@ -14,6 +14,7 @@ import {
   MapPinned,
   Bell,
   ClipboardList,
+  Package,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -62,9 +63,7 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
     {
       icon: <Users className="h-5 w-5" />,
       label: "Quản lý",
-      children: [
-        { href: "/company/users/drivers", label: "Tài xế" },
-      ],
+      children: [{ href: "/company/users/drivers", label: "Tài xế" }],
     },
     {
       href: "/company/route",
@@ -75,6 +74,11 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       href: "/company/application-manage",
       icon: <ClipboardList className="h-5 w-5" />,
       label: "Đơn đã gửi",
+    },
+    {
+      href: "/company/order",
+      icon: <Package className="h-5 w-5" />,
+      label: "Quản lý đơn hàng",
     },
   ],
 };

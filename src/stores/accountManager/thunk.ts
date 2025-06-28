@@ -12,3 +12,17 @@ export const profile = createAsyncThunk(
     }
   }
 );
+
+export const driverCompanyAcc = createAsyncThunk(
+  "company/driver",
+  async (req: { page: number; limit: number }, { rejectWithValue }) => {
+    try {
+      const response = await manageAccount.getCompanyDriverAcc(req);
+      return { page: req.page, data: response.data };
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
+      return rejectWithValue(message);
+    }
+  }
+);

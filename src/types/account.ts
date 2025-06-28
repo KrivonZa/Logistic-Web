@@ -23,3 +23,14 @@ export interface Account {
   role: string;
   detail?: Record<string, any>;
 }
+
+export interface Driver {
+  driverID: string;
+  phoneNumber: string;
+  identityNumber: string;
+  licenseNumber: string;
+  licenseLevel: string;
+  licenseExpiry: string;
+  updatedAt: string;
+  account: Account;
+}
