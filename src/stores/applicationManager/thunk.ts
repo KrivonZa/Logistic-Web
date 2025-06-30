@@ -1,11 +1,11 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { manageAccount } from "@/services/manageAccount";
+import { manageApplication } from "@/services/manageApplication";
 
-export const createApplication = createAsyncThunk(
+export const viewCompanyApplication = createAsyncThunk(
   "",
-  async (_, { rejectWithValue }) => {
+  async (req: { page: number; limit: number }, { rejectWithValue }) => {
     try {
-      const response = await manageAccount.profile();
+      const response = await manageApplication.viewApplication(req);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.message || "Thất bại");

@@ -70,11 +70,11 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       icon: <MapPinned className="h-5 w-5" />,
       label: "Quản lý tuyến đường",
     },
-    {
-      href: "/company/application-manage",
-      icon: <ClipboardList className="h-5 w-5" />,
-      label: "Đơn đã gửi",
-    },
+    // {
+    //   href: "/company/application-manage",
+    //   icon: <ClipboardList className="h-5 w-5" />,
+    //   label: "Đơn đã gửi",
+    // },
     {
       href: "/company/order",
       icon: <Package className="h-5 w-5" />,
