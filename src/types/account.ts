@@ -21,6 +21,8 @@ export interface Account {
   fullName: string;
   avatar: string;
   role: string;
+  status: string;
+  balance: number;
   detail?: Record<string, any>;
 }
 

@@ -1,6 +1,7 @@
 import api from "@/hooks/axiosInstance";
 
 export const manageAccount = {
+  profile: () => api.get(`/account`),
   updateStatus: (accountID: string, status: string) =>
     api.patch(`/account/${accountID}/status?status=${status}`),
   getCompanyDriverAcc: (params: { page: number; limit: number }) =>

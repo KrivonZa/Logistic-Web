@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/stores";
 import { useAccount } from "@/hooks/useAccount";
+import { useRouter } from "next/navigation";
 import { driverCompanyAcc } from "@/stores/accountManager/thunk";
 import {
   Table,
@@ -31,6 +32,8 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Driver } from "@/types/account";
 import isAuth from "@/components/isAuth";
+import ConfirmStatusActions from "@/components/layout/accountAction";
+import { Plus } from "lucide-react";
 
 const LIMIT = 10;
 
@@ -48,6 +51,7 @@ const Drivers = () => {
   const { driverInfo } = useAccount();
   const [page, setPage] = useState(1);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     dispatch(driverCompanyAcc({ page, limit: LIMIT }));
@@ -59,6 +63,12 @@ const Drivers = () => {
 
   return (
     <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Danh sách tài xế</h2>
+        <Button onClick={() => router.push("/company/create-driver")}>
+          <Plus /> Tạo tài xế mới
+        </Button>
+      </div>
       <h2 className="text-2xl font-bold">Danh sách tài xế</h2>
 
       <div className="w-full overflow-auto border rounded-md">
@@ -135,9 +145,14 @@ const Drivers = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button variant="secondary" size="sm">
-                    Trạng thái
-                  </Button>
+                  <ConfirmStatusActions
+                    accountID={driver.account.accountID}
+                    fullName={driver.account.fullName}
+                    currentStatus={driver.account.status}
+                    onSuccess={() =>
+                      dispatch(driverCompanyAcc({ page, limit: LIMIT }))
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ))}

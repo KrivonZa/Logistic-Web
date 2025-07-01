@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Users, LogOut, X, ChevronLeft } from "lucide-react";
+import { Home, Users, LogOut, X, ChevronLeft, Wallet } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const sidebarVariants = {
@@ -23,6 +23,11 @@ const sidebarLinks = [
     href: "/changePassword",
     icon: <Users className="h-5 w-5" />,
     label: "Thay đổi mật khẩu",
+  },
+  {
+    href: "/wallet",
+    icon: <Wallet className="h-5 w-5" />,
+    label: "Ví người dùng",
   },
 ];
 

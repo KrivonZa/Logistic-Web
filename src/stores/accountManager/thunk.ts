@@ -33,6 +33,7 @@ export const driverCompanyAcc = createAsyncThunk(
   async (req: { page: number; limit: number }, { rejectWithValue }) => {
     try {
       const response = await manageAccount.getCompanyDriverAcc(req);
+      console.log(response.data)
       return { page: req.page, data: response.data };
     } catch (error: any) {
       const message =
