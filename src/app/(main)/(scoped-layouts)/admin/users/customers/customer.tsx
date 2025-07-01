@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import isAuth from "@/components/isAuth";
 import debounce from "lodash/debounce";
 import { useAppDispatch } from "@/stores";
 import { getCustomer } from "@/stores/accountManager/thunk";
@@ -118,10 +119,11 @@ const CustomerManagement = () => {
         </Dialog>
         {["active", "pending"].includes(acc.status) && (
           <ConfirmButton
+            accountID={acc.accountID}
             fullName={acc.fullName}
             currentStatus={acc.status}
-            onConfirm={() => {
-              console.log("Đổi trạng thái:", acc.accountID);
+            onSuccess={() => {
+              debouncedFetch(search, page, status);
             }}
           />
         )}
@@ -179,10 +181,11 @@ const CustomerManagement = () => {
         </Dialog>
         {["active", "pending"].includes(acc.status) && (
           <ConfirmButton
+            accountID={acc.accountID}
             fullName={acc.fullName}
             currentStatus={acc.status}
-            onConfirm={() => {
-              console.log("Đổi trạng thái:", acc.accountID);
+            onSuccess={() => {
+              debouncedFetch(search, page, status);
             }}
           />
         )}
@@ -301,4 +304,4 @@ const CustomerManagement = () => {
   );
 };
 
-export default CustomerManagement;
+export default isAuth(CustomerManagement, ["Admin"]);

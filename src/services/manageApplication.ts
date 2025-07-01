@@ -13,4 +13,10 @@ export const manageApplication = {
   }) => api.get(`/service/application/all`, { params }),
   viewApplicationDetail: (req: string) =>
     api.get(`/service/application/${req}`),
+  reviewApplication: (formData: FormData) =>
+    api.post(`/service/application/reviewable`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
 };

@@ -52,3 +52,15 @@ export const viewApplicationDetail = createAsyncThunk(
     }
   }
 );
+
+export const reviewApplication = createAsyncThunk(
+  "application/review",
+  async (req: FormData, { rejectWithValue }) => {
+    try {
+      const response = await manageApplication.reviewApplication(req);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    }
+  }
+);

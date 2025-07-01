@@ -13,6 +13,21 @@ export const profile = createAsyncThunk(
   }
 );
 
+export const updateStatus = createAsyncThunk(
+  "account/updateStatus",
+  async (
+    { accountID, status }: { accountID: string; status: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await manageAccount.updateStatus(accountID, status);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    }
+  }
+);
+
 export const driverCompanyAcc = createAsyncThunk(
   "company/driver",
   async (req: { page: number; limit: number }, { rejectWithValue }) => {

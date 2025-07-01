@@ -9,78 +9,123 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAppDispatch } from "@/stores";
+import { updateStatus } from "@/stores/accountManager/thunk";
 
 type AccountStatus = "active" | "inactive" | "pending";
 
 interface Props {
+  accountID: string;
   fullName: string;
   currentStatus: AccountStatus;
-  onConfirm: () => void;
+  onSuccess?: () => void;
 }
 
-const ConfirmStatusButton = ({ fullName, currentStatus, onConfirm }: Props) => {
+const ConfirmStatusActions = ({
+  accountID,
+  fullName,
+  currentStatus,
+  onSuccess,
+}: Props) => {
   const [open, setOpen] = useState(false);
+  const [targetStatus, setTargetStatus] = useState<
+    "active" | "inactive" | null
+  >(null);
+  const dispatch = useAppDispatch();
 
-  const { label, variant, confirmText } = (() => {
-    switch (currentStatus) {
-      case "active":
-        return {
-          label: "Ngưng hoạt động",
-          variant: "destructive",
-          confirmText: "ngưng hoạt động",
-        };
-      case "inactive":
-        return {
-          label: "Kích hoạt",
-          variant: "default",
-          confirmText: "kích hoạt lại",
-        };
-      case "pending":
-        return {
-          label: "Chấp thuận",
-          variant: "default",
-          confirmText: "chấp thuận tài khoản",
-        };
-      default:
-        return {
-          label: "Hành động",
-          variant: "secondary",
-          confirmText: "cập nhật trạng thái",
-        };
-    }
-  })();
-
-  const handleConfirm = () => {
-    onConfirm();
+  const handleConfirm = async () => {
+    if (!targetStatus) return;
+    await dispatch(updateStatus({ accountID, status: targetStatus }));
+    onSuccess?.();
     setOpen(false);
   };
 
+  const renderButtons = () => {
+    if (currentStatus === "pending") {
+      return (
+        <>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => {
+              setTargetStatus("active");
+              setOpen(true);
+            }}
+          >
+            Chấp thuận
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              setTargetStatus("inactive");
+              setOpen(true);
+            }}
+          >
+            Từ chối
+          </Button>
+        </>
+      );
+    }
+
+    const singleAction =
+      currentStatus === "active"
+        ? {
+            label: "Ngưng hoạt động",
+            status: "inactive",
+            variant: "destructive",
+          }
+        : { label: "Kích hoạt", status: "active", variant: "default" };
+
+    return (
+      <Button
+        size="sm"
+        variant={singleAction.variant as any}
+        onClick={() => {
+          setTargetStatus(singleAction.status as any);
+          setOpen(true);
+        }}
+      >
+        {singleAction.label}
+      </Button>
+    );
+  };
+
+  const confirmText =
+    targetStatus === "active"
+      ? "kích hoạt / chấp thuận"
+      : targetStatus === "inactive"
+      ? "ngưng hoạt động / từ chối"
+      : "";
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant={variant as any}>
-          {label}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Xác nhận</DialogTitle>
-        </DialogHeader>
-        <p>
-          Bạn có chắc muốn <strong>{confirmText}</strong> cho tài khoản{" "}
-          <strong>{fullName}</strong>?
-        </p>
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Hủy
-          </Button>
-          <Button variant={variant as any} onClick={handleConfirm}>
-            Xác nhận
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <>
+      <div className="flex gap-2">{renderButtons()}</div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Xác nhận</DialogTitle>
+          </DialogHeader>
+          <p>
+            Bạn có chắc muốn <strong>{confirmText}</strong> tài khoản{" "}
+            <strong>{fullName}</strong>?
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant={targetStatus === "inactive" ? "destructive" : "default"}
+              onClick={handleConfirm}
+            >
+              Xác nhận
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-export default ConfirmStatusButton;
+export default ConfirmStatusActions;

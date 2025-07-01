@@ -4,6 +4,7 @@ import {
   createApplication,
   viewAllApplication,
   viewApplicationDetail,
+  reviewApplication,
 } from "./thunk";
 import { ApplicationResponse } from "@/types/application";
 
@@ -72,6 +73,15 @@ export const manageApplicationSlice = createSlice({
         state.applicationDetail = action.payload.data;
       })
       .addCase(viewApplicationDetail.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(reviewApplication.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(reviewApplication.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(reviewApplication.rejected, (state) => {
         state.loading = false;
       });
   },

@@ -223,11 +223,12 @@ const DriverManagement = () => {
                         </DialogContent>
                       </Dialog>
                       <ConfirmStatusButton
+                        accountID={acc.accountID}
                         fullName={acc.fullName}
                         currentStatus={acc.status}
-                        onConfirm={() => {
-                          console.log("Cập nhật trạng thái:", acc.accountID);
-                        }}
+                        onSuccess={() =>
+                          debouncedFetch(driverName, companyName, page, status)
+                        }
                       />
                     </TableCell>
                   </TableRow>
@@ -303,11 +304,12 @@ const DriverManagement = () => {
                   </DialogContent>
                 </Dialog>
                 <ConfirmStatusButton
+                  accountID={acc.accountID}
                   fullName={acc.fullName}
                   currentStatus={acc.status}
-                  onConfirm={() => {
-                    console.log("Cập nhật trạng thái:", acc.accountID);
-                  }}
+                  onSuccess={() =>
+                    debouncedFetch(driverName, companyName, page, status)
+                  }
                 />
               </div>
             </div>

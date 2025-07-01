@@ -218,13 +218,23 @@ const CompanyManagement = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      {["active", "pending"].includes(acc.status) && (
+                      {["active", "pending", "inactive"].includes(
+                        acc.status
+                      ) && (
                         <ConfirmStatusButton
+                          accountID={acc.accountID}
                           fullName={acc.fullName}
                           currentStatus={acc.status}
-                          onConfirm={() => {
-                            console.log("Cập nhật trạng thái:", acc.accountID);
-                          }}
+                          onSuccess={() =>
+                            dispatch(
+                              getCompany({
+                                page,
+                                limit: 10,
+                                search,
+                                status: status === "all" ? "" : status,
+                              })
+                            )
+                          }
                         />
                       )}
                     </TableCell>
@@ -301,13 +311,21 @@ const CompanyManagement = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                {["active", "pending"].includes(acc.status) && (
+                {["active", "pending", "inactive"].includes(acc.status) && (
                   <ConfirmStatusButton
+                    accountID={acc.accountID}
                     fullName={acc.fullName}
                     currentStatus={acc.status}
-                    onConfirm={() => {
-                      console.log("Cập nhật trạng thái:", acc.accountID);
-                    }}
+                    onSuccess={() =>
+                      dispatch(
+                        getCompany({
+                          page,
+                          limit: 10,
+                          search,
+                          status: status === "all" ? "" : status,
+                        })
+                      )
+                    }
                   />
                 )}
               </div>
