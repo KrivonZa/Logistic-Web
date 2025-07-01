@@ -53,6 +53,11 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
         { href: "/admin/users/drivers", label: "Tài xế" },
       ],
     },
+    {
+      href: "/admin/application-manage",
+      icon: <ClipboardList className="h-5 w-5" />,
+      label: "Quản lý đơn gửi",
+    },
   ],
   Company: [
     {
@@ -70,11 +75,6 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       icon: <MapPinned className="h-5 w-5" />,
       label: "Quản lý tuyến đường",
     },
-    // {
-    //   href: "/company/application-manage",
-    //   icon: <ClipboardList className="h-5 w-5" />,
-    //   label: "Đơn đã gửi",
-    // },
     {
       href: "/company/order",
       icon: <Package className="h-5 w-5" />,

@@ -4,12 +4,17 @@ import { Routes } from "@/types/route";
 
 type stateType = {
   loading: boolean;
-  routes: Routes[] | [];
+  routes: {
+    page: number;
+    total: number;
+    limit: number;
+    data: Routes[];
+  } | null;
 };
 
 const initialState: stateType = {
   loading: false,
-  routes: [],
+  routes: null,
 };
 
 export const manageRouteSlice = createSlice({
@@ -32,7 +37,12 @@ export const manageRouteSlice = createSlice({
       })
       .addCase(getRoutesByCompany.fulfilled, (state, action) => {
         state.loading = false;
-        state.routes = action.payload.data;
+        state.routes = {
+          page: action.payload.page,
+          total: action.payload.total,
+          limit: action.payload.limit,
+          data: action.payload.data,
+        };
       })
       .addCase(getRoutesByCompany.rejected, (state) => {
         state.loading = false;

@@ -16,7 +16,7 @@ export const createRoutes = createAsyncThunk(
 
 export const getRoutesByCompany = createAsyncThunk(
   "getRoutesByCompany",
-  async (req: Page, { rejectWithValue }) => {
+  async (req: { page: number; limit: number }, { rejectWithValue }) => {
     try {
       const response = await manageRoute.getRouteByCompany(req);
       return response.data;

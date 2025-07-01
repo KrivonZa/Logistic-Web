@@ -20,4 +20,4 @@ const ApplicationDetail = () => {
   );
 };
 
-export default isAuth(ApplicationDetail, ["Company"]);
+export default isAuth(ApplicationDetail, ["Admin"]);

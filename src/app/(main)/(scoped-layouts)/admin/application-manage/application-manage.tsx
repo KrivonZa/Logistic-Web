@@ -206,4 +206,4 @@ const ApplicationManage = () => {
   );
 };
 
-export default isAuth(ApplicationManage, ["Company"]);
+export default isAuth(ApplicationManage, ["Admin"]);

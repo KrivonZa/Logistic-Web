@@ -11,11 +11,6 @@ export interface createWaypoints {
   index: number;
 }
 
-export interface Page {
-  page: number;
-  limit: number;
-}
-
 export interface Waypoint {
   waypointID: string;
   routeID: string;

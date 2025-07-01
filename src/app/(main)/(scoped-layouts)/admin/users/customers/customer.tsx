@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import isAuth from "@/components/isAuth";
+import { useEffect, useMemo, useState } from "react";
+import debounce from "lodash/debounce";
+import { useAppDispatch } from "@/stores";
+import { getCustomer } from "@/stores/accountManager/thunk";
+import { useAccount } from "@/hooks/useAccount";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -12,235 +15,285 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ConfirmButton from "@/components/layout/accountAction";
+import { motion } from "framer-motion";
 
-type UserStatus = "Active" | "Inactive";
-
-interface User {
-  id: string;
-  avatar: string;
-  fullName: string;
-  email: string;
-  status: UserStatus;
-}
-
-const allUsers: User[] = Array.from({ length: 20 }).map((_, i) => ({
-  id: (i + 1).toString(),
-  avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
-  fullName: `Người Dùng ${i + 1}`,
-  email: `user${i + 1}@example.com`,
-  status: i % 2 === 0 ? "Active" : "Inactive",
-}));
-
-const STATUSES = [
+const STATUS_OPTIONS = [
   { label: "Tất cả", value: "all" },
-  { label: "Đang hoạt động", value: "Active" },
-  { label: "Ngưng hoạt động", value: "Inactive" },
+  { label: "Đang hoạt động", value: "active" },
+  { label: "Ngưng hoạt động", value: "inactive" },
 ];
 
-function getStatusLabel(status: UserStatus) {
-  return status === "Active" ? "Đang hoạt động" : "Ngưng hoạt động";
-}
+const CustomerManagement = () => {
+  const dispatch = useAppDispatch();
+  const { customerAccounts, loading } = useAccount();
 
-function getBadgeColor(
-  status: UserStatus | string
-): "destructive" | "secondary" | "default" {
-  switch (status) {
-    case "Active":
-      return "default";
-    case "Inactive":
-      return "destructive";
-    default:
-      return "secondary";
-  }
-}
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
 
-function paginate<T>(array: T[], pageSize: number, pageNumber: number): T[] {
-  return array.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-}
+  const debouncedFetch = useMemo(
+    () =>
+      debounce((s: string, p: number, st: string) => {
+        dispatch(
+          getCustomer({
+            page: p,
+            limit: 10,
+            search: s,
+            status: st === "all" ? "" : st,
+          })
+        );
+      }, 500),
+    [dispatch]
+  );
 
-const Customers = () => {
-  const [page, setPage] = useState<number>(1);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  useEffect(() => {
+    debouncedFetch(search, page, status);
+    return () => debouncedFetch.cancel();
+  }, [search, page, status, debouncedFetch]);
 
-  const filteredUsers =
-    statusFilter === "all"
-      ? allUsers
-      : allUsers.filter((user) => user.status === statusFilter);
+  const totalPages = useMemo(() => {
+    return customerAccounts?.total ? Math.ceil(customerAccounts.total / 10) : 1;
+  }, [customerAccounts]);
 
-  const pageSize = 10;
-  const pageCount = Math.ceil(filteredUsers.length / pageSize);
-  const currentPageData = paginate(filteredUsers, pageSize, page);
+  const renderAccountRow = (acc: any) => (
+    <TableRow key={acc.accountID}>
+      <TableCell>
+        <Avatar>
+          <AvatarImage src={acc.avatar} />
+          <AvatarFallback>{acc.fullName[0]}</AvatarFallback>
+        </Avatar>
+      </TableCell>
+      <TableCell>{acc.fullName}</TableCell>
+      <TableCell>{acc.email}</TableCell>
+      <TableCell>{acc.detail.phoneNumber}</TableCell>
+      <TableCell>
+        <Badge variant={acc.status === "active" ? "default" : "destructive"}>
+          {acc.status === "active" ? "Đang hoạt động" : "Ngưng hoạt động"}
+        </Badge>
+      </TableCell>
+      <TableCell className="flex gap-2">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline">
+              Chi tiết
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Chi tiết khách hàng</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <p>
+                <strong>Họ tên:</strong> {acc.fullName}
+              </p>
+              <p>
+                <strong>Email:</strong> {acc.email}
+              </p>
+              <p>
+                <strong>Điện thoại:</strong> {acc.detail.phoneNumber}
+              </p>
+              <p>
+                <strong>Địa chỉ:</strong> {acc.detail.address}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+        {["active", "pending"].includes(acc.status) && (
+          <ConfirmButton
+            fullName={acc.fullName}
+            currentStatus={acc.status}
+            onConfirm={() => {
+              console.log("Đổi trạng thái:", acc.accountID);
+            }}
+          />
+        )}
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderAccountCard = (acc: any) => (
+    <div
+      key={acc.accountID}
+      className="border rounded-xl p-4 flex flex-col gap-2 shadow-sm"
+    >
+      <div className="flex items-center gap-4">
+        <Avatar>
+          <AvatarImage src={acc.avatar} />
+          <AvatarFallback>{acc.fullName[0]}</AvatarFallback>
+        </Avatar>
+        <div>
+          <h3 className="font-semibold">{acc.fullName}</h3>
+          <p className="text-sm text-muted-foreground">{acc.email}</p>
+        </div>
+      </div>
+      <p>
+        <strong>Điện thoại:</strong> {acc.detail.phoneNumber}
+      </p>
+      <Badge variant={acc.status === "active" ? "default" : "destructive"}>
+        {acc.status === "active" ? "Đang hoạt động" : "Ngưng hoạt động"}
+      </Badge>
+      <div className="flex gap-2 mt-2">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline" className="flex-1">
+              Chi tiết
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Chi tiết khách hàng</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <p>
+                <strong>Họ tên:</strong> {acc.fullName}
+              </p>
+              <p>
+                <strong>Email:</strong> {acc.email}
+              </p>
+              <p>
+                <strong>Điện thoại:</strong> {acc.detail.phoneNumber}
+              </p>
+              <p>
+                <strong>Địa chỉ:</strong> {acc.detail.address}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+        {["active", "pending"].includes(acc.status) && (
+          <ConfirmButton
+            fullName={acc.fullName}
+            currentStatus={acc.status}
+            onConfirm={() => {
+              console.log("Đổi trạng thái:", acc.accountID);
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <motion.div
-      initial={{ y: 40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="max-w-7xl mx-auto p-6 w-full"
+      className="p-6 max-w-7xl mx-auto"
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      {/* Title */}
-      <h1 className="text-2xl font-bold mb-6">Quản lý khách hàng</h1>
+      <h1 className="text-2xl font-bold mb-4">Quản lý khách hàng</h1>
 
-      {/* Filter */}
-      <div className="flex justify-start items-center mb-4">
-        <Select
-          value={statusFilter}
-          onValueChange={(value) => {
-            setStatusFilter(value);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Chọn trạng thái" />
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <Input
+          placeholder="Tìm theo tên"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full sm:w-72"
+        />
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-full sm:w-60">
+            <SelectValue placeholder="Lọc theo trạng thái" />
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
-              {STATUSES.map(({ label, value }) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Table Layout (md+) */}
-      <div className="hidden md:block overflow-x-auto">
-        <Table className="min-w-full">
+      {/* Table layout (desktop) */}
+      <div className="overflow-x-auto hidden md:block">
+        <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Avatar</TableHead>
-              <TableHead>Họ và tên</TableHead>
+              <TableHead>Họ tên</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Điện thoại</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Hành động</TableHead>
-              <TableHead>Khác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentPageData.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6">
+                <TableCell colSpan={6} className="text-center py-6">
+                  Đang tải dữ liệu...
+                </TableCell>
+              </TableRow>
+            ) : Array.isArray(customerAccounts?.data) &&
+              customerAccounts.data.length > 0 ? (
+              customerAccounts.data.map(renderAccountRow)
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
                   Không có dữ liệu
                 </TableCell>
               </TableRow>
-            ) : (
-              currentPageData.map(({ id, avatar, fullName, email, status }) => (
-                <TableRow key={id} className="hover:bg-muted">
-                  <TableCell>
-                    <Avatar>
-                      <AvatarImage src={avatar} alt={fullName} />
-                      <AvatarFallback>{fullName[0]}</AvatarFallback>
-                    </Avatar>
-                  </TableCell>
-                  <TableCell>{fullName}</TableCell>
-                  <TableCell>{email}</TableCell>
-                  <TableCell>
-                    <Badge variant={getBadgeColor(status)}>
-                      {getStatusLabel(status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Sửa
-                    </Button>
-                    <Button variant="destructive" size="sm">
-                      Xóa
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">
-                      Chi tiết
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
             )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Card Layout (<md) */}
-      <div className="md:hidden flex flex-col gap-4">
-        {currentPageData.length === 0 ? (
-          <p className="text-center py-6">Không có dữ liệu</p>
-        ) : (
-          currentPageData.map(({ id, avatar, fullName, email, status }) => (
-            <div
-              key={id}
-              className="border rounded-lg p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4"
-            >
-              <Avatar>
-                <AvatarImage src={avatar} alt={fullName} />
-                <AvatarFallback>{fullName[0]}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg truncate">{fullName}</h3>
-                <p className="text-sm text-muted-foreground truncate">
-                  {email}
-                </p>
-                <Badge className="mt-2" variant={getBadgeColor(status)}>
-                  {getStatusLabel(status)}
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
-                <Button variant="outline" size="sm" className="w-20">
-                  Chi tiết
-                </Button>
-                <Button variant="outline" size="sm" className="w-20">
-                  Sửa
-                </Button>
-                <Button variant="destructive" size="sm" className="w-20">
-                  Chặn
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
+      {/* Card layout (mobile) */}
+      <div className="md:hidden space-y-4">
+        {Array.isArray(customerAccounts?.data) &&
+          customerAccounts.data.map(renderAccountCard)}
       </div>
 
-      {/* Pagination (bên dưới bảng) */}
-      {pageCount > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+      {/* Pagination */}
+      {customerAccounts?.total > 10 && (
+        <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
             disabled={page === 1}
-            onClick={() => setPage(page - 1)}
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           >
-            Trước
+            Trang trước
           </Button>
 
-          {Array.from({ length: pageCount }, (_, i) => (
-            <Button
-              key={i}
-              size="sm"
-              variant={page === i + 1 ? "default" : "outline"}
-              onClick={() => setPage(i + 1)}
-            >
-              {i + 1}
-            </Button>
-          ))}
+          {Array.from({ length: totalPages }).map((_, i) => {
+            const pageNumber = i + 1;
+            return (
+              <Button
+                key={pageNumber}
+                variant={page === pageNumber ? "default" : "outline"}
+                size="sm"
+                onClick={() => setPage(pageNumber)}
+              >
+                {pageNumber}
+              </Button>
+            );
+          })}
 
           <Button
             variant="outline"
             size="sm"
-            disabled={page === pageCount}
-            onClick={() => setPage(page + 1)}
+            disabled={page === totalPages}
+            onClick={() => setPage((prev) => prev + 1)}
           >
-            Sau
+            Trang sau
           </Button>
         </div>
       )}
@@ -248,4 +301,4 @@ const Customers = () => {
   );
 };
 
-export default isAuth(Customers, ["Admin"]);
+export default CustomerManagement;

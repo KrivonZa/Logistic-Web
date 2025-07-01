@@ -1,6 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { profile, driverCompanyAcc } from "./thunk";
-import { Account, Driver } from "@/types/account";
+import {
+  profile,
+  driverCompanyAcc,
+  getCustomer,
+  getCompany,
+  getDriver,
+} from "./thunk";
+import { Account, Driver, AccountWithRoleDetail } from "@/types/account";
 
 type stateType = {
   loading: boolean;
@@ -9,12 +15,27 @@ type stateType = {
     page: number;
     data: Driver[];
   } | null;
+  customerAccounts: {
+    total: number;
+    data: AccountWithRoleDetail[];
+  } | null;
+  companyAccounts: {
+    total: number;
+    data: AccountWithRoleDetail[];
+  } | null;
+  driverAccounts: {
+    total: number;
+    data: AccountWithRoleDetail[];
+  } | null;
 };
 
 const initialState: stateType = {
   loading: false,
   info: null,
   driverInfo: null,
+  customerAccounts: null,
+  companyAccounts: null,
+  driverAccounts: null,
 };
 
 export const manageAccountSlice = createSlice({
@@ -41,6 +62,45 @@ export const manageAccountSlice = createSlice({
         state.driverInfo = action.payload.data;
       })
       .addCase(driverCompanyAcc.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(getCustomer.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getCustomer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.customerAccounts = {
+          total: action.payload.data.total,
+          data: action.payload.data.data,
+        };
+      })
+      .addCase(getCustomer.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(getCompany.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getCompany.fulfilled, (state, action) => {
+        state.loading = false;
+        state.companyAccounts = {
+          total: action.payload.data.total,
+          data: action.payload.data.data,
+        };
+      })
+      .addCase(getCompany.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(getDriver.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getDriver.fulfilled, (state, action) => {
+        state.loading = false;
+        state.driverAccounts = {
+          total: action.payload.data.total,
+          data: action.payload.data.data,
+        };
+      })
+      .addCase(getDriver.rejected, (state) => {
         state.loading = false;
       });
   },
