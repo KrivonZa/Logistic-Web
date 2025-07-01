@@ -16,7 +16,6 @@ export default function UserProfile() {
   const dispatch = useAppDispatch();
   const { loading, info } = useAccount();
   const router = useRouter();
-  console.log(info)
 
   useEffect(() => {
     dispatch(profile());

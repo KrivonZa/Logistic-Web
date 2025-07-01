@@ -21,3 +21,10 @@ export type ApplicationResponse = {
   sender: AccountInfo;
   admin: AccountInfo;
 };
+
+export type CreateApplication = {
+  senderID: string;
+  senderNote: string;
+  type: string;
+  senderFileUrl: string;
+};

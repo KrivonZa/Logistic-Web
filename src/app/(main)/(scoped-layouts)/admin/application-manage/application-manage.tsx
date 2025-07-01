@@ -5,7 +5,11 @@ import isAuth from "@/components/isAuth";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/stores";
 import { useApplication } from "@/hooks/useApplication";
-import { viewCompanyApplication } from "@/stores/applicationManager/thunk";
+import {
+  viewAllApplication,
+  viewCompanyApplication,
+} from "@/stores/applicationManager/thunk";
+import ApplicationAction from "@/components/layout/ApplicationAction";
 
 import {
   Table,
@@ -48,20 +52,20 @@ const LIMIT = 10;
 
 const ApplicationManage = () => {
   const dispatch = useAppDispatch();
-  const { loading, applications } = useApplication();
+  const { loading, allApplication } = useApplication();
   const router = useRouter();
 
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
 
-  const appList = applications?.data || [];
-  const total = Number(applications?.page || 0);
-  const totalPages = Math.ceil(total / LIMIT);
+  const appList = allApplication?.data || [];
+  const total = allApplication?.total || 0;
+  const totalPages = Math.ceil(total / (allApplication?.limit || LIMIT));
 
   useEffect(() => {
     const params: any = { page, limit: LIMIT };
-    if (status !== "all") params.status = status;
-    dispatch(viewCompanyApplication(params));
+    if (status !== "all") params.applicationStatus = status;
+    dispatch(viewAllApplication(params));
   }, [dispatch, status, page]);
 
   return (
@@ -150,18 +154,36 @@ const ApplicationManage = () => {
                   <TableCell>
                     {new Date(app.createdAt).toLocaleDateString("vi-VN")}
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center space-y-2">
                     <Button
                       size="sm"
                       variant={"outline"}
                       onClick={() =>
                         router.push(
-                          `/company/application-manage/${app.applicationID}`
+                          `/admin/application-manage/${app.applicationID}`
                         )
                       }
                     >
                       Chi tiết
                     </Button>
+
+                    {app.status === "PENDING" && (
+                      <ApplicationAction
+                        applicationID={app.applicationID}
+                        fullName={app.sender.fullName || "Người dùng"}
+                        status={app.status}
+                        onReload={() =>
+                          dispatch(
+                            viewAllApplication({
+                              page,
+                              limit: LIMIT,
+                              applicationStatus:
+                                status !== "all" ? status : undefined,
+                            })
+                          )
+                        }
+                      />
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

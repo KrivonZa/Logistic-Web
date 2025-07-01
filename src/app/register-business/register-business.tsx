@@ -21,7 +21,9 @@ import { bankList } from "@/stores/bankManager/thunk";
 import { uploadFile } from "@/stores/fileManager/thunk";
 import { useFile } from "@/hooks/useFile";
 import { registerBusiness } from "@/stores/authentManager/thunk";
+import { createApplication } from "@/stores/applicationManager/thunk";
 import { useAuth } from "@/hooks/useAuth";
+import { useApplication } from "@/hooks/useApplication";
 import { BusinessRegister } from "@/types/account";
 
 const formSchema = z
@@ -34,6 +36,7 @@ const formSchema = z
     address: z.string().min(5, "Địa chỉ quá ngắn"),
     bankName: z.string().min(1, "Vui lòng chọn ngân hàng"),
     bankAccount: z.string().min(12, "Số tài khoản không hợp lệ"),
+    senderNote: z.string().min(5, "Ghi chú quá ngắn"),
     license: z
       .instanceof(File, { message: "Vui lòng tải lên giấy phép" })
       .refine((file) => file.size > 0, {
@@ -58,6 +61,7 @@ const RegisterBusiness = () => {
   const { bank } = useBank();
   const { loading: loadingFile } = useFile();
   const { loading: loadingAuth } = useAuth();
+  const { loading: loadingApplication } = useApplication();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -79,21 +83,37 @@ const RegisterBusiness = () => {
   const selectedBank = bank.find((b) => b.code === selectedBankName);
 
   const onSubmit = async (data: FormData) => {
-    const { confirmPassword, license, ...rest } = data;
+    const { confirmPassword, license, senderNote, ...rest } = data;
 
     try {
       const uploadRes = await dispatch(uploadFile(license)).unwrap();
-
-      const licenseUrl = uploadRes?.data;
+      const senderFileUrl = uploadRes?.data;
 
       const payload: BusinessRegister = {
         ...rest,
         fullName: rest.companyName,
         bankName: selectedBank?.name ?? "",
-        license: licenseUrl,
+        license: senderFileUrl,
       };
 
-      await dispatch(registerBusiness(payload)).unwrap();
+      const registerRes = await dispatch(registerBusiness(payload)).unwrap();
+      const senderID = registerRes?.data?.accountID;
+      console.log(senderID)
+
+      if (!senderID) {
+        throw new Error("Không lấy được accountID sau khi đăng ký");
+      }
+
+      await dispatch(
+        createApplication({
+          senderID,
+          senderNote,
+          senderFileUrl,
+          type: "REQUEST_BECOME_COMPANY",
+        })
+      ).unwrap();
+
+      console.log("Đéo Ổn")
 
       setTimeout(() => {
         router.push("/login");
@@ -331,7 +351,7 @@ const RegisterBusiness = () => {
             <div>
               <Label>Ghi chú</Label>
               <Textarea
-                {...register("address")}
+                {...register("senderNote")}
                 placeholder="Ghi chú cho đơn"
                 className="bg-white w-full rounded-lg border-2 border-indigo-200 focus:border-primary focus:ring-4 focus:ring-indigo-200/50 transition-all duration-300 outline-none"
               />
@@ -343,9 +363,9 @@ const RegisterBusiness = () => {
             size="lg"
             type="submit"
             className="relative overflow-hidden w-full h-12 sm:h-14 rounded-xl bg-gradient-to-r from-primary via-primary to-secondary text-white font-semibold shadow-lg group transition-all duration-300 [&_svg]:size-6"
-            disabled={loadingAuth || loadingFile}
+            disabled={loadingAuth || loadingFile || loadingApplication}
           >
-            {loadingAuth || loadingFile ? (
+            {loadingAuth || loadingFile || loadingApplication ? (
               <Spinner size={"medium"} className="text-white" />
             ) : (
               <div>
