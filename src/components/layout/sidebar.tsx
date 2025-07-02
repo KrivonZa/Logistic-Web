@@ -87,11 +87,6 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       icon: <Package className="h-5 w-5" />,
       label: "Quản lý đơn hàng",
     },
-    {
-      href: "/company/transaction",
-      icon: <ArrowLeftRight className="h-5 w-5" />,
-      label: "Quản lý giao dịch",
-    },
   ],
 };
 

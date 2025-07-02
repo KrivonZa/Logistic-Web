@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageRoute } from "@/services/manageRoute";
-import { createRoute, Page } from "@/types/route";
+import { createRoute } from "@/types/route";
 
 export const createRoutes = createAsyncThunk(
   "createRoutes",

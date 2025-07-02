@@ -7,6 +7,8 @@ import { manageFileReducer } from "./fileManager/slice";
 import { manageOrderReducer } from "./orderManager/slice";
 import { manageApplicationReducer } from "./applicationManager/slice";
 import { managePaymentReducer } from "./paymentManager/slice";
+import { manageVehicleReducer } from "./vehicleManager/slice";
+import { manageVehicle } from "@/services/manageVehicle";
 
 export const rootReducer = combineReducers({
   manageAuthen: manageAuthenReducer,
@@ -17,4 +19,5 @@ export const rootReducer = combineReducers({
   manageOrder: manageOrderReducer,
   manageApplication: manageApplicationReducer,
   managePayment: managePaymentReducer,
+  manageVehicle: manageVehicleReducer,
 });
