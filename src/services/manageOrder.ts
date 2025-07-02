@@ -6,5 +6,5 @@ export const manageOrder = {
     api.get(`/delivery-order/company/orders`, { params }),
   getOrderDetail: (req: string) => api.get(`/delivery-order/order/${req}`),
   updateOrder: (req: UpdateOrder) =>
-    api.post(`/delivery-order/update/${req.orderID}`, req.status),
+    api.post(`/delivery-order/update/${req.orderID}?status=${req.status}`),
 };

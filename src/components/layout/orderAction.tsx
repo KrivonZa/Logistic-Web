@@ -12,13 +12,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/stores";
+import { usePayment } from "@/hooks/usePayment";
 import { updateOrder } from "@/stores/orderManager/thunk";
+import { createPayment, cancelPayment } from "@/stores/paymentManager/thunk";
 import { delivery_status } from "@/types/order";
+import { useState } from "react";
 
 interface Props {
   status: string;
   orderID: string;
+  onStatusUpdated?: () => void;
 }
 
 type ActionType = "accept" | "reject" | "cancel";
@@ -29,14 +34,50 @@ const statusMap: Record<ActionType, delivery_status> = {
   cancel: delivery_status.canceled,
 };
 
-export default function OrderStatusActions({ status, orderID }: Props) {
+export default function OrderStatusActions({
+  status,
+  orderID,
+  onStatusUpdated,
+}: Props) {
   const dispatch = useAppDispatch();
+  const { loading } = usePayment();
 
-  const handleAction = (actionType: ActionType) => {
+  const [cancelReason, setCancelReason] = useState("");
+
+  const handleAction = async (actionType: ActionType) => {
     const newStatus = statusMap[actionType];
-    if (newStatus) {
-      dispatch(updateOrder({ orderID, status: newStatus }));
+    if (!newStatus) return;
+
+    // Trường hợp cancel phải có lý do
+    if (actionType === "cancel" && !cancelReason.trim()) {
+      alert("Vui lòng nhập lý do hủy đơn hàng");
+      return;
     }
+
+    await dispatch(updateOrder({ orderID, status: newStatus }));
+
+    if (actionType === "accept") {
+      await dispatch(
+        createPayment({
+          description: `Thanh toán #${orderID.slice(0, 6)}`,
+          returnUrl: "https://facebook.com",
+          cancelUrl: "https://wikipedia.org",
+          deliveryOrderId: orderID,
+        })
+      );
+    }
+
+    if (actionType === "cancel") {
+      await dispatch(
+        cancelPayment({
+          orderId: orderID,
+          cancellationReason: cancelReason.trim(),
+        })
+      );
+      setCancelReason("");
+    }
+
+    onStatusUpdated?.();
   };
 
   const renderDialog = (
@@ -45,27 +86,47 @@ export default function OrderStatusActions({ status, orderID }: Props) {
     actionLabel: string,
     actionType: ActionType,
     variant: "default" | "destructive" | "outline" = "default"
-  ) => (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant={variant} size="sm">
-          {actionLabel}
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction onClick={() => handleAction(actionType)}>
-            Xác nhận
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+  ) => {
+    const isCancel = actionType === "cancel";
+
+    return (
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant={variant} size="sm">
+            {actionLabel}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {/* Hiển thị textarea nếu là cancel */}
+          {isCancel && (
+            <div className="my-4">
+              <label className="block text-sm font-medium mb-1">
+                Lý do hủy đơn <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Nhập lý do hủy đơn hàng..."
+                className="min-h-[100px]"
+              />
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleAction(actionType)}>
+              Xác nhận
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
 
   switch (status) {
     case delivery_status.pending:

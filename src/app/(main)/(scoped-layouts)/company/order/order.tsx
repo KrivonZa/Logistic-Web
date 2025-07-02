@@ -63,7 +63,7 @@ const Order = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { loading, orders } = useOrder();
-  console.log(orders)
+  console.log(orders);
 
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
@@ -152,6 +152,11 @@ const Order = () => {
                       <OrderStatusActions
                         status={order.status}
                         orderID={order.orderID}
+                        onStatusUpdated={() => {
+                          const params: any = { page, limit: LIMIT };
+                          if (status !== "all") params.status = status;
+                          dispatch(companyOrder(params));
+                        }}
                       />
                     </div>
                   </TableCell>

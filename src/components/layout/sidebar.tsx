@@ -15,6 +15,8 @@ import {
   Bell,
   ClipboardList,
   Package,
+  Bus,
+  ArrowLeftRight,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -76,9 +78,19 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
       label: "Quản lý tuyến đường",
     },
     {
+      href: "/company/vehicle",
+      icon: <Bus className="h-5 w-5" />,
+      label: "Quản lý phương tiện",
+    },
+    {
       href: "/company/order",
       icon: <Package className="h-5 w-5" />,
       label: "Quản lý đơn hàng",
+    },
+    {
+      href: "/company/transaction",
+      icon: <ArrowLeftRight className="h-5 w-5" />,
+      label: "Quản lý giao dịch",
     },
   ],
 };
