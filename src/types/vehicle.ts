@@ -6,4 +6,5 @@ export interface Vehicles {
   loadCapacity: number;
   updatedAt: string;
   companyName: string;
+  status: string;
 }

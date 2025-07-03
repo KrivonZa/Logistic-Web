@@ -149,6 +149,8 @@ export default function OrderStatusActions({
       );
 
     case delivery_status.unpaid:
+    case delivery_status.paid:
+    case delivery_status.scheduled:
     case delivery_status.in_progress:
       return (
         <div>

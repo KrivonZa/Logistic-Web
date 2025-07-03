@@ -70,17 +70,15 @@ const sidebarLinks: Record<string, SidebarLink[]> = {
     {
       icon: <Users className="h-5 w-5" />,
       label: "Quản lý",
-      children: [{ href: "/company/users/drivers", label: "Tài xế" }],
+      children: [
+        { href: "/company/users/drivers", label: "Tài xế" },
+        { href: "/company/vehicle", label: "Phương tiện" },
+      ],
     },
     {
       href: "/company/route",
       icon: <MapPinned className="h-5 w-5" />,
       label: "Quản lý tuyến đường",
-    },
-    {
-      href: "/company/vehicle",
-      icon: <Bus className="h-5 w-5" />,
-      label: "Quản lý phương tiện",
     },
     {
       href: "/company/order",

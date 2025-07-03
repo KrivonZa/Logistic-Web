@@ -107,19 +107,19 @@ const CreateDriver = () => {
       />
 
       <Button
-        variant="outline"
-        onClick={() => router.push("/company/users/drivers")}
-        className="w-full max-w-md"
-      >
-        Trở về
-      </Button>
-
-      <Button
         onClick={handleSubmit}
         disabled={loadingFile || loadingApplication}
         className="w-full max-w-md"
       >
         {loadingFile || loadingApplication ? "Đang gửi..." : "Gửi đơn"}
+      </Button>
+
+      <Button
+        variant="outline"
+        onClick={() => router.push("/company/users/drivers")}
+        className="w-full max-w-md"
+      >
+        Trở về
       </Button>
     </motion.div>
   );

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getVehicle, createVehicle } from "./thunk";
+import { getVehicle, createVehicle, updateVehicle } from "./thunk";
 import { Vehicles } from "@/types/vehicle";
 
 type stateType = {
@@ -41,6 +41,15 @@ export const manageVehicleSlice = createSlice({
         state.loading = false;
       })
       .addCase(createVehicle.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateVehicle.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateVehicle.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateVehicle.rejected, (state) => {
         state.loading = false;
       });
   },

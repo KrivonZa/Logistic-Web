@@ -217,7 +217,11 @@ const DriverManagement = () => {
                             </p>
                             <p>
                               <strong>Ngày hết hạn:</strong>{" "}
-                              {detail.licenseExpiry?.slice(0, 10)}
+                              {detail.licenseExpiry
+                                ? new Date(
+                                    detail.licenseExpiry
+                                  ).toLocaleDateString("vi-VN")
+                                : "Không rõ"}
                             </p>
                           </div>
                         </DialogContent>
@@ -298,7 +302,11 @@ const DriverManagement = () => {
                       </p>
                       <p>
                         <strong>Ngày hết hạn:</strong>{" "}
-                        {detail.licenseExpiry?.slice(0, 10)}
+                        {detail.licenseExpiry
+                          ? new Date(detail.licenseExpiry).toLocaleDateString(
+                              "vi-VN"
+                            )
+                          : "Không rõ"}
                       </p>
                     </div>
                   </DialogContent>

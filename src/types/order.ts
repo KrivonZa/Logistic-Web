@@ -61,6 +61,8 @@ export enum delivery_status {
   reject = "reject",
   pending = "pending",
   unpaid = "unpaid",
+  paid = "paid",
+  scheduled = "scheduled",
   in_progress = "in_progress",
   delivered = "delivered",
   canceled = "canceled",

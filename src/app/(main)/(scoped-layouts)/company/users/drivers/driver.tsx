@@ -69,7 +69,6 @@ const Drivers = () => {
           <Plus /> Tạo tài xế mới
         </Button>
       </div>
-      <h2 className="text-2xl font-bold">Danh sách tài xế</h2>
 
       <div className="w-full overflow-auto border rounded-md">
         <Table>

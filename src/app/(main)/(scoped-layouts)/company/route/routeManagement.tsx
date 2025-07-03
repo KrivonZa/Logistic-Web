@@ -67,6 +67,8 @@ const RouteManagement = () => {
   const goongApiKey = process.env.NEXT_PUBLIC_GOONG_API_KEY!;
   const goongMaptilesKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY!;
 
+  console.log(routes);
+
   const fetchSuggestions = debounce(async (input: string) => {
     if (!input.trim()) {
       setSuggestions([]);
@@ -521,10 +523,12 @@ const RouteManagement = () => {
                             }`}
                             onClick={() => handleSelectRoute(route)}
                           >
-                            <MapPin className="h-5 w-5 mr-3 text-blue-500" />
-                            <span className="truncate text-base font-medium">
-                              {route.routeName}
-                            </span>
+                            <div className="flex items-start gap-3 w-full">
+                              <MapPin className="h-5 w-5 text-blue-500 mt-1 shrink-0" />
+                              <div className="flex-1 break-words text-base font-medium leading-snug overflow-hidden whitespace-nowrap text-ellipsis">
+                                {route.routeName}
+                              </div>
+                            </div>
                           </Button>
                         ))}
                       </div>

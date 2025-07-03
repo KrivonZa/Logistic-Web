@@ -18,18 +18,33 @@ import { useAppDispatch } from "@/stores";
 import { getVehicle } from "@/stores/vehicleManager/thunk";
 import { useVehicle } from "@/hooks/useVehicle";
 import VehicleAction from "@/components/layout/vehicleAction";
+import VehicleUpdateAction from "@/components/layout/vehicleUpdateAction";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ITEMS_PER_PAGE = 10;
 
 const Vehicle = () => {
   const { info } = useAccount();
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<string>("");
   const dispatch = useAppDispatch();
   const { loading, vehicles, total } = useVehicle();
 
   useEffect(() => {
-    dispatch(getVehicle({ page, limit: ITEMS_PER_PAGE }));
-  }, [dispatch, page]);
+    dispatch(
+      getVehicle({
+        page,
+        limit: ITEMS_PER_PAGE,
+        status: status === "all" ? "" : status,
+      })
+    );
+  }, [dispatch, page, status]);
 
   const totalPage = Math.ceil(total / ITEMS_PER_PAGE);
 
@@ -50,7 +65,19 @@ const Vehicle = () => {
     >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Danh sách phương tiện</h2>
-        <VehicleAction />
+        <div className="flex items-center gap-4">
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Lọc trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="active">Hoạt động</SelectItem>
+              <SelectItem value="inactive">Ngưng hoạt động</SelectItem>
+            </SelectContent>
+          </Select>
+          <VehicleAction />
+        </div>
       </div>
 
       <div className="overflow-x-auto border rounded-lg">
@@ -62,6 +89,8 @@ const Vehicle = () => {
               <TableHead>Biển số xe</TableHead>
               <TableHead>Hình ảnh</TableHead>
               <TableHead>Tải trọng</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,6 +107,20 @@ const Vehicle = () => {
                   />
                 </TableCell>
                 <TableCell>{v.loadCapacity.toLocaleString()} kg</TableCell>
+                <TableCell>
+                  <span
+                    className={`capitalize ${
+                      v.status === "inactive"
+                        ? "text-red-500"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {v.status === "active" ? "Hoạt động" : "Ngưng hoạt động"}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <VehicleUpdateAction vehicle={v} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
