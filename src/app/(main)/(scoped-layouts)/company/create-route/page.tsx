@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import isAuth from "@/components/isAuth";
 
 export const metadata: Metadata = {
   title: "Tạo tuyến đường",

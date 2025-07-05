@@ -15,8 +15,6 @@ import {
   Bell,
   ClipboardList,
   Package,
-  Bus,
-  ArrowLeftRight,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 

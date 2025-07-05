@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import isAuth from "@/components/isAuth";
-import { useAccount } from "@/hooks/useAccount";
 import {
   Table,
   TableBody,
@@ -30,11 +29,10 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 const Vehicle = () => {
-  const { info } = useAccount();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string>("");
   const dispatch = useAppDispatch();
-  const { loading, vehicles, total } = useVehicle();
+  const { vehicles, total } = useVehicle();
 
   useEffect(() => {
     dispatch(

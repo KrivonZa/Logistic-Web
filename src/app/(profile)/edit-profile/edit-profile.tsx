@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useAccount } from "@/hooks/useAccount";
 import CompanyEditForm from "@/components/layout/profile/companyEditForm";
 import AdminEditForm from "@/components/layout/profile/adminEditForm";
+import isAuth from "@/components/isAuth";
 
-export default function EditProfile() {
+const EditProfile = () => {
   const { loading, info } = useAccount();
 
   const renderEditForm = () => {
@@ -45,4 +45,6 @@ export default function EditProfile() {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default isAuth(EditProfile, ["Admin", "Company"]);

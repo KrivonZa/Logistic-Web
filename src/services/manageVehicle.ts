@@ -1,7 +1,7 @@
 import api from "@/hooks/axiosInstance";
 
 export const manageVehicle = {
-  getVehicle: (params: { page: number; limit: number; status: string }) =>
+  getVehicle: (params: { page?: number; limit?: number; status?: string }) =>
     api.get(`/vehicle`, { params }),
   createVehicle: (formData: FormData) =>
     api.post(`/vehicle`, formData, {

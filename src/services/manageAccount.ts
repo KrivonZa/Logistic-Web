@@ -4,7 +4,7 @@ export const manageAccount = {
   profile: () => api.get(`/account`),
   updateStatus: (accountID: string, status: string) =>
     api.patch(`/account/${accountID}/status?status=${status}`),
-  getCompanyDriverAcc: (params: { page: number; limit: number }) =>
+  getCompanyDriverAcc: (params: { page?: number; limit?: number }) =>
     api.get(`/account/company/drivers`, { params }),
   getCustomerAcc: (params: {
     status?: string;

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 export const getVehicle = createAsyncThunk(
   "vehicle",
   async (
-    req: { page: number; limit: number; status: string },
+    req: { page?: number; limit?: number; status?: string },
     { rejectWithValue }
   ) => {
     try {

@@ -11,8 +11,9 @@ import { useAccount } from "@/hooks/useAccount";
 import { useAppDispatch } from "@/stores";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
+import isAuth from "@/components/isAuth";
 
-export default function UserProfile() {
+const UserProfile = () => {
   const dispatch = useAppDispatch();
   const { loading, info } = useAccount();
   const router = useRouter();
@@ -139,4 +140,6 @@ export default function UserProfile() {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default isAuth(UserProfile, ["Admin", "Company"]);

@@ -67,7 +67,6 @@ const Order = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { loading, orders } = useOrder();
-  console.log(orders);
 
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");

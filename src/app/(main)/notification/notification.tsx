@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 
 import { FileText, FileX, FileSpreadsheet } from "lucide-react";
+import isAuth from "@/components/isAuth";
 
 const allNotifications = [
   {
@@ -69,7 +70,7 @@ function getFileIcon(type: string) {
   }
 }
 
-export default function NotificationPage() {
+const NotificationPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterCategory, setFilterCategory] = useState("Tất cả");
 
@@ -193,4 +194,6 @@ export default function NotificationPage() {
       )}
     </div>
   );
-}
+};
+
+export default isAuth(NotificationPage, ["Admin", "Company"]);

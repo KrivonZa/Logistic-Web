@@ -487,5 +487,4 @@ const Dashboard = () => {
   );
 };
 
-//export default isAuth(Dashboard, ["Admin"]);
-export default Dashboard;
+export default isAuth(Dashboard, ["Admin"]);

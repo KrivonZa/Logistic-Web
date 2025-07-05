@@ -27,6 +27,7 @@ import { createRoute, createWaypoints } from "@/types/route";
 import { useAppDispatch } from "@/stores";
 import { useRoute } from "@/hooks/useRoute";
 import { createRoutes } from "@/stores/routeManager/thunk";
+import isAuth from "@/components/isAuth";
 
 const SortableItem = ({
   id,
@@ -337,7 +338,7 @@ const CreateRoute = () => {
       waypoints,
     };
     const result = await dispatch(createRoutes(payload)).unwrap();
-    console.log(result)
+    console.log(result);
   };
 
   return (
@@ -452,4 +453,4 @@ const CreateRoute = () => {
   );
 };
 
-export default CreateRoute;
+export default isAuth(CreateRoute, ["Company"]);

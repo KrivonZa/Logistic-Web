@@ -19,6 +19,7 @@ import { updateOrder } from "@/stores/orderManager/thunk";
 import { createPayment, cancelPayment } from "@/stores/paymentManager/thunk";
 import { delivery_status } from "@/types/order";
 import { useState } from "react";
+import TripAction from "./tripAction";
 
 interface Props {
   status: string;
@@ -145,6 +146,13 @@ export default function OrderStatusActions({
             "reject",
             "destructive"
           )}
+        </div>
+      );
+
+    case delivery_status.paid:
+      return (
+        <div>
+          <TripAction orderID={orderID} onSuccess={onStatusUpdated} />
         </div>
       );
 

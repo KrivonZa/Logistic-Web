@@ -5,10 +5,7 @@ import isAuth from "@/components/isAuth";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/stores";
 import { useApplication } from "@/hooks/useApplication";
-import {
-  viewAllApplication,
-  viewCompanyApplication,
-} from "@/stores/applicationManager/thunk";
+import { viewAllApplication } from "@/stores/applicationManager/thunk";
 import ApplicationAction from "@/components/layout/ApplicationAction";
 
 import {
@@ -36,7 +33,6 @@ import {
 } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 const STATUS_LIST = ["all", "PENDING", "APPROVED", "REJECTED"];

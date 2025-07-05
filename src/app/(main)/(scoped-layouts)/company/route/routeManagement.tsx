@@ -42,6 +42,7 @@ import { useRoute } from "@/hooks/useRoute";
 import { getRoutesByCompany } from "@/stores/routeManager/thunk";
 import { Routes, Waypoint } from "@/types/route";
 import debounce from "lodash/debounce";
+import isAuth from "@/components/isAuth";
 
 const RouteManagement = () => {
   const [selectedRoute, setSelectedRoute] = useState<Routes | null>(null);
@@ -797,4 +798,4 @@ const RouteManagement = () => {
   );
 };
 
-export default RouteManagement;
+export default isAuth(RouteManagement, ["Company"]);
