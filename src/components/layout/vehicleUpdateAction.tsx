@@ -22,8 +22,16 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
+interface VehicleData {
+  vehicleID: string;
+  vehicleNumber: string;
+  loadCapacity: number;
+  status: "active" | "inactive";
+  vehicleImage?: string | null;
+}
+
 interface Props {
-  vehicle: any;
+  vehicle: VehicleData;
   onSuccess?: () => void;
 }
 
@@ -33,14 +41,14 @@ const UpdateVehicleModal = ({ vehicle, onSuccess }: Props) => {
 
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [loadCapacity, setLoadCapacity] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState<"active" | "inactive">("active");
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (open) {
       setVehicleNumber(vehicle.vehicleNumber || "");
-      setLoadCapacity(vehicle.loadCapacity?.toString() || "");
-      setStatus(vehicle.status || "active");
+      setLoadCapacity(vehicle.loadCapacity.toString() || "");
+      setStatus(vehicle.status);
       setImageFile(null);
     } else {
       setVehicleNumber("");
@@ -70,8 +78,8 @@ const UpdateVehicleModal = ({ vehicle, onSuccess }: Props) => {
       toast.success("Cập nhật thành công");
       setOpen(false);
       onSuccess?.();
-    } catch (error) {
-      // lỗi đã toast trong thunk, không cần toast thêm ở đây
+    } catch {
+      // lỗi đã được xử lý ở trong thunk
     }
   };
 
@@ -104,7 +112,10 @@ const UpdateVehicleModal = ({ vehicle, onSuccess }: Props) => {
           </div>
           <div>
             <Label>Trạng thái</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={status}
+              onValueChange={(val) => setStatus(val as "active" | "inactive")}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>

@@ -26,7 +26,7 @@ export const manageRouteSlice = createSlice({
       .addCase(createRoutes.pending, (state) => {
         state.loading = true;
       })
-      .addCase(createRoutes.fulfilled, (state, action) => {
+      .addCase(createRoutes.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(createRoutes.rejected, (state) => {

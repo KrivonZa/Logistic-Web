@@ -23,7 +23,7 @@ export interface Account {
   role: string;
   status: string;
   balance: number;
-  detail?: Record<string, any>;
+  detail?: CustomerDetail | DriverDetail | CompanyDetail;
 }
 
 export interface Driver {

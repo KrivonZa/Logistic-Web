@@ -1,15 +1,16 @@
 "use client";
 
+import { useState } from "react";
+import { useAppDispatch } from "@/stores";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useAppDispatch } from "@/stores";
 import { updateStatus } from "@/stores/accountManager/thunk";
+import { toast } from "sonner";
 
 type AccountStatus = "active" | "inactive" | "pending";
 
@@ -20,32 +21,40 @@ interface Props {
   onSuccess?: () => void;
 }
 
-const ConfirmStatusActions = ({
+type TargetStatus = Extract<AccountStatus, "active" | "inactive">;
+
+export default function ConfirmStatusActions({
   accountID,
   fullName,
   currentStatus,
   onSuccess,
-}: Props) => {
-  const [open, setOpen] = useState(false);
-  const [targetStatus, setTargetStatus] = useState<
-    "active" | "inactive" | null
-  >(null);
+}: Props) {
   const dispatch = useAppDispatch();
+  const [open, setOpen] = useState(false);
+  const [targetStatus, setTargetStatus] = useState<TargetStatus | null>(null);
 
   const handleConfirm = async () => {
     if (!targetStatus) return;
-    await dispatch(updateStatus({ accountID, status: targetStatus }));
-    onSuccess?.();
-    setOpen(false);
+
+    try {
+      await dispatch(
+        updateStatus({ accountID, status: targetStatus })
+      ).unwrap();
+      toast.success(`Đã cập nhật trạng thái cho ${fullName}`);
+      onSuccess?.();
+    } catch (err) {
+      toast.error("Cập nhật trạng thái thất bại");
+    } finally {
+      setOpen(false);
+    }
   };
 
-  const renderButtons = () => {
+  const renderActionButtons = () => {
     if (currentStatus === "pending") {
       return (
         <>
           <Button
             size="sm"
-            variant="default"
             onClick={() => {
               setTargetStatus("active");
               setOpen(true);
@@ -67,39 +76,31 @@ const ConfirmStatusActions = ({
       );
     }
 
-    const singleAction =
-      currentStatus === "active"
-        ? {
-            label: "Ngưng hoạt động",
-            status: "inactive",
-            variant: "destructive",
-          }
-        : { label: "Kích hoạt", status: "active", variant: "default" };
+    const isCurrentlyActive = currentStatus === "active";
+    const nextStatus: TargetStatus = isCurrentlyActive ? "inactive" : "active";
 
     return (
       <Button
         size="sm"
-        variant={singleAction.variant as any}
+        variant={isCurrentlyActive ? "destructive" : "default"}
         onClick={() => {
-          setTargetStatus(singleAction.status as any);
+          setTargetStatus(nextStatus);
           setOpen(true);
         }}
       >
-        {singleAction.label}
+        {isCurrentlyActive ? "Ngưng hoạt động" : "Kích hoạt"}
       </Button>
     );
   };
 
-  const confirmText =
+  const confirmMessage =
     targetStatus === "active"
       ? "kích hoạt / chấp thuận"
-      : targetStatus === "inactive"
-      ? "ngưng hoạt động / từ chối"
-      : "";
+      : "ngưng hoạt động / từ chối";
 
   return (
     <>
-      <div className="flex gap-2">{renderButtons()}</div>
+      <div className="flex gap-2">{renderActionButtons()}</div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-sm">
@@ -107,7 +108,7 @@ const ConfirmStatusActions = ({
             <DialogTitle>Xác nhận</DialogTitle>
           </DialogHeader>
           <p>
-            Bạn có chắc muốn <strong>{confirmText}</strong> tài khoản{" "}
+            Bạn có chắc muốn <strong>{confirmMessage}</strong> tài khoản{" "}
             <strong>{fullName}</strong>?
           </p>
           <div className="flex justify-end gap-2 mt-4">
@@ -125,6 +126,4 @@ const ConfirmStatusActions = ({
       </Dialog>
     </>
   );
-};
-
-export default ConfirmStatusActions;
+}

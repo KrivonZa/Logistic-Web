@@ -83,7 +83,7 @@ const RegisterBusiness = () => {
   const selectedBank = bank.find((b) => b.code === selectedBankName);
 
   const onSubmit = async (data: FormData) => {
-    const { confirmPassword, license, senderNote, ...rest } = data;
+    const { license, senderNote, ...rest } = data;
 
     try {
       const uploadRes = await dispatch(uploadFile(license)).unwrap();
@@ -98,7 +98,6 @@ const RegisterBusiness = () => {
 
       const registerRes = await dispatch(registerBusiness(payload)).unwrap();
       const senderID = registerRes?.data?.accountID;
-      console.log(senderID)
 
       if (!senderID) {
         throw new Error("Không lấy được accountID sau khi đăng ký");
@@ -112,8 +111,6 @@ const RegisterBusiness = () => {
           type: "REQUEST_BECOME_COMPANY",
         })
       ).unwrap();
-
-      console.log("Đéo Ổn")
 
       setTimeout(() => {
         router.push("/login");

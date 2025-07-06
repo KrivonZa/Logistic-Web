@@ -19,7 +19,7 @@ export const manageAuthenSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.loading = true;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(login.fulfilled, (state) => {
         state.loading = false;
         toast.success("Đăng nhập thành công", {
           style: {
@@ -41,7 +41,7 @@ export const manageAuthenSlice = createSlice({
       .addCase(googleLogin.pending, (state) => {
         state.loading = true;
       })
-      .addCase(googleLogin.fulfilled, (state, action) => {
+      .addCase(googleLogin.fulfilled, (state) => {
         state.loading = false;
         toast.success("Đăng nhập Google thành công", {
           style: {
@@ -62,7 +62,7 @@ export const manageAuthenSlice = createSlice({
       .addCase(registerBusiness.pending, (state) => {
         state.loading = true;
       })
-      .addCase(registerBusiness.fulfilled, (state, action) => {
+      .addCase(registerBusiness.fulfilled, (state) => {
         state.loading = false;
         toast.success(
           "Đăng ký thành công. Đơn đăng ký sẽ được xác nhận trong vòng 48h kể từ ngày gửi đơn",
@@ -74,7 +74,7 @@ export const manageAuthenSlice = createSlice({
           }
         );
       })
-      .addCase(registerBusiness.rejected, (state, action) => {
+      .addCase(registerBusiness.rejected, (state) => {
         state.loading = false;
         toast.error("Đã có lỗi trong quá trình đăng ký. Vui lòng thử lại", {
           style: {

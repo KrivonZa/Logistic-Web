@@ -53,7 +53,7 @@ const ApplicationAction = ({
       toast.success("Cập nhật trạng thái thành công");
       onReload();
       resetState();
-    } catch (err) {
+    } catch {
       toast.error("Cập nhật thất bại");
     }
   };

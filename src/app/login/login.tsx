@@ -64,7 +64,9 @@ export default function Login() {
           });
           break;
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -85,7 +87,9 @@ export default function Login() {
           });
           break;
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
   };
 
   return (

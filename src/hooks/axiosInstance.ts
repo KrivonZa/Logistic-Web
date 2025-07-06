@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
+import type { Account } from "@/types/account";
 
 interface AuthContext {
-  setUser: (user: any) => void;
+  setUser: (user: Account | null) => void;
   router: {
     push: (path: string) => void;
   };
@@ -22,7 +23,8 @@ const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

@@ -56,7 +56,7 @@ const statusMapping: Record<string, string> = {
   pending: "Chờ xác nhận",
   unpaid: "Chưa thanh toán",
   paid: "Đã thanh toán",
-  scheduled: "Đã xếp lịch",    
+  scheduled: "Đã xếp lịch",
   in_progress: "Đang giao",
   delivered: "Đã giao",
   canceled: "Đã hủy",
@@ -76,7 +76,11 @@ const Order = () => {
   const orderList = orders?.data || [];
 
   useEffect(() => {
-    const params: any = { page, limit: LIMIT };
+    const params: { page: number; limit: number; status?: string } = {
+      page,
+      limit: LIMIT,
+    };
+    if (status !== "all") params.status = status;
     if (status !== "all") params.status = status;
     dispatch(companyOrder(params));
   }, [dispatch, page, status]);
@@ -112,7 +116,8 @@ const Order = () => {
         </div>
       ) : orderList.length === 0 ? (
         <div className="text-center text-muted-foreground py-12">
-          Không có đơn hàng nào thuộc trạng thái "{statusMapping[status]}"
+          Không có đơn hàng nào thuộc trạng thái &quot;{statusMapping[status]}
+          &quot;
         </div>
       ) : (
         <div className="overflow-auto border rounded-md">

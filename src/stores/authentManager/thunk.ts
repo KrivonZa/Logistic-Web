@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageAuthen } from "@/services/manageAuthen";
 import { Login, BusinessRegister } from "@/types/account";
+import { AxiosError } from "axios";
 
 export const login = createAsyncThunk(
   "auth/login",
@@ -21,10 +22,9 @@ export const login = createAsyncThunk(
       localStorage.setItem("role", role);
 
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(
-        error?.response?.data?.message || "Đăng nhập thất bại"
-      );
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -84,10 +84,9 @@ export const googleLogin = createAsyncThunk(
       localStorage.setItem("role", role);
 
       return tokenResponse.data;
-    } catch (error: any) {
-      return rejectWithValue(
-        error?.response?.data?.message || "Đăng nhập thất bại"
-      );
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -98,10 +97,9 @@ export const registerBusiness = createAsyncThunk(
     try {
       const response = await manageAuthen.registerBusiness(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(
-        error?.response?.data?.message || "Đăng ký thất bại"
-      );
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );

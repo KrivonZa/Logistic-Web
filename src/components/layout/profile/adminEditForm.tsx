@@ -10,7 +10,17 @@ type AdminFormData = {
   email: string;
 };
 
-export default function AdminEditForm({ info }: { info: any }) {
+type AdminInfo = {
+  fullName: string;
+  email: string;
+  avatar?: string | null;
+};
+
+interface Props {
+  info: AdminInfo;
+}
+
+export default function AdminEditForm({ info }: Props) {
   const { register, handleSubmit } = useForm<AdminFormData>({
     defaultValues: {
       fullName: info.fullName || "",
@@ -18,13 +28,14 @@ export default function AdminEditForm({ info }: { info: any }) {
     },
   });
 
-  console.log(info)
-
   const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
   const avatarFileRef = useRef<File | null>(null);
 
   const onSubmit = (data: AdminFormData) => {
-    console.log("📝 Admin form submitted:", data);
+    console.log("📝 Admin form submitted:", {
+      ...data,
+      avatarFile: avatarFileRef.current,
+    });
     alert("Lưu thành công!");
   };
 
@@ -38,18 +49,22 @@ export default function AdminEditForm({ info }: { info: any }) {
           avatarFileRef.current = file;
         }}
       />
+
       <div className="space-y-1.5">
         <Label htmlFor="fullName">Họ và tên</Label>
         <Input id="fullName" {...register("fullName")} />
       </div>
+
       <div className="space-y-1.5">
         <Label htmlFor="email">Email</Label>
         <Input id="email" type="email" {...register("email")} />
       </div>
+
       <div className="space-y-1.5">
         <Label>Vai trò</Label>
         <Input disabled value="Quản trị viên hệ thống" />
       </div>
+
       <div className="flex justify-end pt-4">
         <Button type="submit">Lưu thay đổi</Button>
       </div>

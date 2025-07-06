@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageFile } from "@/services/manageFile";
+import { AxiosError } from "axios";
 
 export const uploadFile = createAsyncThunk(
   "uploadFile",
@@ -7,8 +8,9 @@ export const uploadFile = createAsyncThunk(
     try {
       const response = await manageFile.uploadFile(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );

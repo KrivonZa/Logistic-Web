@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageApplication } from "@/services/manageApplication";
 import { CreateApplication } from "@/types/application";
+import { AxiosError } from "axios";
 
 export const viewCompanyApplication = createAsyncThunk(
   "application/view",
@@ -8,8 +9,9 @@ export const viewCompanyApplication = createAsyncThunk(
     try {
       const response = await manageApplication.viewApplication(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -20,8 +22,9 @@ export const createApplication = createAsyncThunk(
     try {
       const response = await manageApplication.createApplication(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -35,8 +38,9 @@ export const viewAllApplication = createAsyncThunk(
     try {
       const response = await manageApplication.viewAllApplication(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -47,8 +51,9 @@ export const viewApplicationDetail = createAsyncThunk(
     try {
       const response = await manageApplication.viewApplicationDetail(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -59,8 +64,9 @@ export const reviewApplication = createAsyncThunk(
     try {
       const response = await manageApplication.reviewApplication(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );

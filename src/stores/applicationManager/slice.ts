@@ -49,7 +49,7 @@ export const manageApplicationSlice = createSlice({
       .addCase(createApplication.pending, (state) => {
         state.loading = true;
       })
-      .addCase(createApplication.fulfilled, (state, action) => {
+      .addCase(createApplication.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(createApplication.rejected, (state) => {

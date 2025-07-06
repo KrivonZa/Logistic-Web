@@ -29,7 +29,7 @@ const Header = ({
 }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { loading, info } = useAccount();
+  const { info } = useAccount();
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 

@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageRoute } from "@/services/manageRoute";
 import { createRoute } from "@/types/route";
+import { AxiosError } from "axios";
 
 export const createRoutes = createAsyncThunk(
   "createRoutes",
@@ -8,8 +9,9 @@ export const createRoutes = createAsyncThunk(
     try {
       const response = await manageRoute.createRoute(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -20,8 +22,9 @@ export const getRoutesByCompany = createAsyncThunk(
     try {
       const response = await manageRoute.getRouteByCompany(req);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );

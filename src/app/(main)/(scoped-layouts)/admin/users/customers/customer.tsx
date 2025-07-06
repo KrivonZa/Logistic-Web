@@ -6,6 +6,7 @@ import debounce from "lodash/debounce";
 import { useAppDispatch } from "@/stores";
 import { getCustomer } from "@/stores/accountManager/thunk";
 import { useAccount } from "@/hooks/useAccount";
+import { AccountWithRoleDetail } from "@/types/account";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -74,7 +75,7 @@ const CustomerManagement = () => {
     return customerAccounts?.total ? Math.ceil(customerAccounts.total / 10) : 1;
   }, [customerAccounts]);
 
-  const renderAccountRow = (acc: any) => (
+  const renderAccountRow = (acc: AccountWithRoleDetail) => (
     <TableRow key={acc.accountID}>
       <TableCell>
         <Avatar>
@@ -84,7 +85,9 @@ const CustomerManagement = () => {
       </TableCell>
       <TableCell>{acc.fullName}</TableCell>
       <TableCell>{acc.email}</TableCell>
-      <TableCell>{acc.detail.phoneNumber}</TableCell>
+      <TableCell>
+        {"phoneNumber" in acc.detail ? acc.detail.phoneNumber : "Không có"}
+      </TableCell>
       <TableCell>
         <Badge variant={acc.status === "active" ? "default" : "destructive"}>
           {acc.status === "active" ? "Đang hoạt động" : "Ngưng hoạt động"}
@@ -109,10 +112,14 @@ const CustomerManagement = () => {
                 <strong>Email:</strong> {acc.email}
               </p>
               <p>
-                <strong>Điện thoại:</strong> {acc.detail.phoneNumber}
+                <strong>Điện thoại:</strong>{" "}
+                {"phoneNumber" in acc.detail
+                  ? acc.detail.phoneNumber
+                  : "Không có"}
               </p>
               <p>
-                <strong>Địa chỉ:</strong> {acc.detail.address}
+                <strong>Địa chỉ:</strong>{" "}
+                {"address" in acc.detail ? acc.detail.address : "Không có"}
               </p>
             </div>
           </DialogContent>
@@ -131,7 +138,7 @@ const CustomerManagement = () => {
     </TableRow>
   );
 
-  const renderAccountCard = (acc: any) => (
+  const renderAccountCard = (acc: AccountWithRoleDetail) => (
     <div
       key={acc.accountID}
       className="border rounded-xl p-4 flex flex-col gap-2 shadow-sm"
@@ -147,7 +154,8 @@ const CustomerManagement = () => {
         </div>
       </div>
       <p>
-        <strong>Điện thoại:</strong> {acc.detail.phoneNumber}
+        <strong>Điện thoại:</strong>{" "}
+        {"phoneNumber" in acc.detail ? acc.detail.phoneNumber : "Không có"}
       </p>
       <Badge variant={acc.status === "active" ? "default" : "destructive"}>
         {acc.status === "active" ? "Đang hoạt động" : "Ngưng hoạt động"}
@@ -171,10 +179,14 @@ const CustomerManagement = () => {
                 <strong>Email:</strong> {acc.email}
               </p>
               <p>
-                <strong>Điện thoại:</strong> {acc.detail.phoneNumber}
+                <strong>Điện thoại:</strong>{" "}
+                {"phoneNumber" in acc.detail
+                  ? acc.detail.phoneNumber
+                  : "Không có"}
               </p>
               <p>
-                <strong>Địa chỉ:</strong> {acc.detail.address}
+                <strong>Địa chỉ:</strong>{" "}
+                {"address" in acc.detail ? acc.detail.address : "Không có"}
               </p>
             </div>
           </DialogContent>
@@ -265,7 +277,7 @@ const CustomerManagement = () => {
       </div>
 
       {/* Pagination */}
-      {customerAccounts?.total > 10 && (
+      {customerAccounts && customerAccounts.total > 10 && (
         <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <Button
             variant="outline"

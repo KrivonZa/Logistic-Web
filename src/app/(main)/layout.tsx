@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Sidebar
             key="sidebar"
             toggleSidebar={toggleSidebar}
-            role={role as any}
+            role={role as string}
           />
         )}
       </AnimatePresence>

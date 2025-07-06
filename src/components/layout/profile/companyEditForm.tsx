@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import EditableAvatar from "./editableAvatar";
 
+// Zod schema
 const formSchema = z.object({
   companyName: z.string().min(2, "Tên doanh nghiệp tối thiểu 2 ký tự"),
   taxCode: z.string().min(10, "Mã số thuế không hợp lệ"),
@@ -25,7 +26,28 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function CompanyEditForm({ info }: { info: any }) {
+// ✅ Define type for `info` prop
+interface CompanyDetail {
+  taxCode: string;
+  legalRep: string;
+  phoneNumber: string;
+  address: string;
+  bankName: string;
+  bankAccount: string;
+}
+
+interface CompanyInfo {
+  fullName: string;
+  email: string;
+  avatar?: string | null;
+  detail: CompanyDetail;
+}
+
+interface Props {
+  info: CompanyInfo;
+}
+
+export default function CompanyEditForm({ info }: Props) {
   const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
   const avatarFileRef = useRef<File | null>(null);
 
@@ -52,7 +74,10 @@ export default function CompanyEditForm({ info }: { info: any }) {
   }, [info, setValue]);
 
   const onSubmit = (data: FormData) => {
-    console.log("📝 Company form submitted:", data);
+    console.log("📝 Company form submitted:", {
+      ...data,
+      avatarFile: avatarFileRef.current,
+    });
     alert("Lưu thành công!");
   };
 
@@ -67,6 +92,7 @@ export default function CompanyEditForm({ info }: { info: any }) {
         }}
       />
 
+      {/* Render input fields */}
       {[
         { label: "Tên doanh nghiệp", name: "companyName" },
         { label: "Mã số thuế", name: "taxCode" },
@@ -92,6 +118,7 @@ export default function CompanyEditForm({ info }: { info: any }) {
         </div>
       ))}
 
+      {/* License file upload */}
       <div className="space-y-1.5">
         <Label htmlFor="license">Giấy phép kinh doanh</Label>
         <Input

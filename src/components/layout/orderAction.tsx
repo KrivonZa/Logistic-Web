@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/stores";
-import { usePayment } from "@/hooks/usePayment";
 import { updateOrder } from "@/stores/orderManager/thunk";
 import { createPayment, cancelPayment } from "@/stores/paymentManager/thunk";
 import { delivery_status } from "@/types/order";
@@ -41,15 +40,12 @@ export default function OrderStatusActions({
   onStatusUpdated,
 }: Props) {
   const dispatch = useAppDispatch();
-  const { loading } = usePayment();
-
   const [cancelReason, setCancelReason] = useState("");
 
   const handleAction = async (actionType: ActionType) => {
     const newStatus = statusMap[actionType];
     if (!newStatus) return;
 
-    // Trường hợp cancel phải có lý do
     if (actionType === "cancel" && !cancelReason.trim()) {
       alert("Vui lòng nhập lý do hủy đơn hàng");
       return;
@@ -103,7 +99,6 @@ export default function OrderStatusActions({
             <AlertDialogDescription>{description}</AlertDialogDescription>
           </AlertDialogHeader>
 
-          {/* Hiển thị textarea nếu là cancel */}
           {isCancel && (
             <div className="my-4">
               <label className="block text-sm font-medium mb-1">
@@ -150,14 +145,9 @@ export default function OrderStatusActions({
       );
 
     case delivery_status.paid:
-      return (
-        <div>
-          <TripAction orderID={orderID} onSuccess={onStatusUpdated} />
-        </div>
-      );
+      return <TripAction orderID={orderID} onSuccess={onStatusUpdated} />;
 
     case delivery_status.unpaid:
-    case delivery_status.paid:
     case delivery_status.scheduled:
     case delivery_status.in_progress:
       return (

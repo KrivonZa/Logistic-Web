@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import polyline from "@mapbox/polyline";
@@ -43,6 +43,7 @@ import { getRoutesByCompany } from "@/stores/routeManager/thunk";
 import { Routes, Waypoint } from "@/types/route";
 import debounce from "lodash/debounce";
 import isAuth from "@/components/isAuth";
+import goong, { Map, Marker, Popup, LngLatBounds } from "@goongmaps/goong-js";
 
 const RouteManagement = () => {
   const [selectedRoute, setSelectedRoute] = useState<Routes | null>(null);
@@ -50,13 +51,13 @@ const RouteManagement = () => {
   const [suggestions, setSuggestions] = useState<
     { place_id: string; description: string }[]
   >([]);
-  const [GoongMap, setGoongMap] = useState<any>(null);
-  const mapRef = useRef<any>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
-  const [markers, setMarkers] = useState<Record<string, any>>({});
+  const [goongMap, setGoongMap] = useState<typeof goong | null>(null);
+  const mapRef = useRef<Map | null>(null);
+  const [markers, setMarkers] = useState<Record<string, Marker>>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingWaypoint, setEditingWaypoint] = useState<Waypoint | null>(null);
-  const [editLocationName, setEditLocationName] = useState("");
+  const [editLocationName, setEditLocationName] = useState<string>();
   const [pendingWaypoints, setPendingWaypoints] = useState<Waypoint[]>([]);
   const [isUpdateNeeded, setIsUpdateNeeded] = useState(false);
   const router = useRouter();
@@ -68,28 +69,32 @@ const RouteManagement = () => {
   const goongApiKey = process.env.NEXT_PUBLIC_GOONG_API_KEY!;
   const goongMaptilesKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY!;
 
-  console.log(routes);
+  const fetchSuggestions = useCallback(
+    debounce(async (input: string) => {
+      if (!input.trim()) {
+        setSuggestions([]);
+        return;
+      }
 
-  const fetchSuggestions = debounce(async (input: string) => {
-    if (!input.trim()) {
-      setSuggestions([]);
-      return;
-    }
-
-    try {
-      const res = await axios.get("https://rsapi.goong.io/Place/AutoComplete", {
-        params: {
-          api_key: goongApiKey,
-          input,
-          location: "10.776889,106.700806",
-        },
-      });
-      setSuggestions(res.data.predictions || []);
-    } catch (error) {
-      console.error("Lỗi khi tìm kiếm địa điểm:", error);
-      setSuggestions([]);
-    }
-  }, 300);
+      try {
+        const res = await axios.get(
+          "https://rsapi.goong.io/Place/AutoComplete",
+          {
+            params: {
+              api_key: goongApiKey,
+              input,
+              location: "10.776889,106.700806",
+            },
+          }
+        );
+        setSuggestions(res.data.predictions || []);
+      } catch (error) {
+        console.error("Error fetching place suggestions:", error);
+        setSuggestions([]);
+      }
+    }, 300),
+    [goongApiKey]
+  );
 
   useEffect(() => {
     dispatch(getRoutesByCompany({ page: currentPage, limit }));
@@ -98,12 +103,11 @@ const RouteManagement = () => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    let map: any;
     import("@goongmaps/goong-js").then((mod) => {
       const goong = mod.default;
       goong.accessToken = goongMaptilesKey;
 
-      map = new goong.Map({
+      const map = new goong.Map({
         container: mapContainer.current!,
         style: "https://tiles.goong.io/assets/goong_map_web.json",
         center: [106.700806, 10.776889],
@@ -111,23 +115,13 @@ const RouteManagement = () => {
       });
 
       mapRef.current = map;
-
-      setGoongMap({
-        ...goong,
-        Marker: mod.Marker,
-        Popup: mod.Popup,
-        LngLatBounds: mod.LngLatBounds,
-      });
+      setGoongMap(goong); // ✅ đúng rồi
     });
-
-    return () => {
-      if (map) map.remove();
-    };
   }, []);
 
-  const drawRoute = async () => {
+  const drawRoute = useCallback(async () => {
     if (
-      !GoongMap ||
+      !goongMap ||
       !mapRef.current ||
       !selectedRoute ||
       !Array.isArray(selectedRoute.Waypoint) ||
@@ -158,7 +152,7 @@ const RouteManagement = () => {
       const validWaypoints = [
         ...selectedRoute.Waypoint,
         ...pendingWaypoints,
-      ].filter((wp) => {
+      ].filter((wp): wp is Waypoint & { geoLocation: string } => {
         if (!wp.geoLocation || typeof wp.geoLocation !== "string") return false;
         try {
           const geo = JSON.parse(wp.geoLocation);
@@ -175,15 +169,15 @@ const RouteManagement = () => {
       });
 
       if (validWaypoints.length < 2) {
-        console.warn("Không đủ điểm hợp lệ để vẽ tuyến đường");
+        console.warn("Not enough valid waypoints to draw route");
         return;
       }
 
-      const newMarkers: Record<string, any> = {};
+      const newMarkers: Record<string, Marker> = {};
       validWaypoints.forEach((wp, i) => {
         const geo = JSON.parse(wp.geoLocation);
         const [lng, lat] = geo.coordinates;
-        const marker = new GoongMap.Marker({
+        const marker = new goongMap.Marker({
           color:
             i === 0
               ? "#ff0000"
@@ -193,53 +187,56 @@ const RouteManagement = () => {
         })
           .setLngLat([lng, lat])
           .setPopup(
-            new GoongMap.Popup().setHTML(
+            new goongMap.Popup().setHTML(
               `<strong>${
-                wp.location || `Điểm ${i + 1}`
+                wp.location || `Point ${i + 1}`
               }</strong><br>(${lat.toFixed(4)}, ${lng.toFixed(4)})`
             )
           )
-          .addTo(mapRef.current);
+          .addTo(mapRef.current!);
         newMarkers[`wp-${i}`] = marker;
       });
       setMarkers(newMarkers);
 
-      let allCoords: number[][] = [];
-      for (let i = 0; i < validWaypoints.length - 1; i++) {
-        const start = validWaypoints[i];
-        const end = validWaypoints[i + 1];
+      const allCoords = await validWaypoints.reduce(
+        async (coordsPromise, _, i) => {
+          const coords = await coordsPromise;
+          if (i >= validWaypoints.length - 1) return coords;
 
-        const startGeo = JSON.parse(start.geoLocation);
-        const endGeo = JSON.parse(end.geoLocation);
-        const origin = `${startGeo.coordinates[1]},${startGeo.coordinates[0]}`;
-        const destination = `${endGeo.coordinates[1]},${endGeo.coordinates[0]}`;
+          const start = validWaypoints[i];
+          const end = validWaypoints[i + 1];
 
-        const res = await axios.get("https://rsapi.goong.io/Direction", {
-          params: {
-            origin,
-            destination,
-            vehicle: "car",
-            optimize: false,
-            api_key: goongApiKey,
-          },
-        });
+          const startGeo = JSON.parse(start.geoLocation);
+          const endGeo = JSON.parse(end.geoLocation);
+          const origin = `${startGeo.coordinates[1]},${startGeo.coordinates[0]}`;
+          const destination = `${endGeo.coordinates[1]},${endGeo.coordinates[0]}`;
 
-        const route = res.data.routes?.[0];
-        if (!route) {
-          console.warn(`Không tìm thấy tuyến đường từ điểm ${i} đến ${i + 1}`);
-          continue;
-        }
+          const res = await axios.get("https://rsapi.goong.io/Direction", {
+            params: {
+              origin,
+              destination,
+              vehicle: "car",
+              optimize: false,
+              api_key: goongApiKey,
+            },
+          });
 
-        const coordsSegment = polyline.decode(route.overview_polyline.points);
-        if (i === 0) {
-          allCoords.push(...coordsSegment);
-        } else {
-          allCoords.push(...coordsSegment.slice(1));
-        }
-      }
+          const route = res.data.routes?.[0];
+          if (!route) {
+            console.warn(`No route found from point ${i} to ${i + 1}`);
+            return coords;
+          }
+
+          const coordsSegment = polyline.decode(route.overview_polyline.points);
+          return i === 0
+            ? [...coords, ...coordsSegment]
+            : [...coords, ...coordsSegment.slice(1)];
+        },
+        Promise.resolve([] as [number, number][])
+      );
 
       if (allCoords.length === 0) {
-        console.warn("Không có tọa độ để vẽ tuyến đường");
+        console.warn("No coordinates to draw route");
         return;
       }
 
@@ -275,132 +272,148 @@ const RouteManagement = () => {
         const geo = JSON.parse(wp.geoLocation);
         const [lng, lat] = geo.coordinates;
         return b.extend([lng, lat]);
-      }, new GoongMap.LngLatBounds(JSON.parse(validWaypoints[0].geoLocation).coordinates, JSON.parse(validWaypoints[0].geoLocation).coordinates));
+      }, new goongMap.LngLatBounds(JSON.parse(validWaypoints[0].geoLocation).coordinates, JSON.parse(validWaypoints[0].geoLocation).coordinates));
       mapRef.current.fitBounds(bounds, { padding: 80, maxZoom: 15 });
     } catch (error) {
-      console.error("Lỗi khi vẽ tuyến đường:", error);
+      console.error("Error drawing route:", error);
     }
-  };
+  }, [goongMap, mapRef, selectedRoute, pendingWaypoints, goongApiKey]);
 
   useEffect(() => {
-    if (GoongMap && selectedRoute) {
+    if (goongMap && selectedRoute) {
       drawRoute();
     }
-  }, [selectedRoute, GoongMap, pendingWaypoints]);
+  }, [goongMap, selectedRoute, pendingWaypoints, drawRoute]);
 
-  const handleAddLocationByName = async (placeId: string) => {
-    if (!selectedRoute) return;
+  const handleAddLocationByName = useCallback(
+    async (placeId: string) => {
+      if (!selectedRoute) return;
 
-    try {
-      const detailRes = await axios.get("https://rsapi.goong.io/Place/Detail", {
-        params: {
-          api_key: goongApiKey,
-          place_id: placeId,
-        },
-      });
+      try {
+        const detailRes = await axios.get(
+          "https://rsapi.goong.io/Place/Detail",
+          {
+            params: {
+              api_key: goongApiKey,
+              place_id: placeId,
+            },
+          }
+        );
 
-      const { lat, lng } = detailRes.data.result.geometry.location;
-      const newWaypoint: Waypoint = {
-        waypointID: `wp-${Date.now()}`,
-        routeID: selectedRoute.routeID,
-        location:
-          detailRes.data.result.name || detailRes.data.result.formatted_address,
-        geoLocation: JSON.stringify({
-          type: "Point",
-          coordinates: [lng, lat],
-        }),
-        index: selectedRoute.Waypoint.length + pendingWaypoints.length,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+        const { lat, lng } = detailRes.data.result.geometry.location;
+        const newWaypoint: Waypoint = {
+          waypointID: `wp-${Date.now()}`,
+          routeID: selectedRoute.routeID,
+          location:
+            detailRes.data.result.name ||
+            detailRes.data.result.formatted_address,
+          geoLocation: JSON.stringify({
+            type: "Point",
+            coordinates: [lng, lat],
+          }),
+          index: selectedRoute.Waypoint.length + pendingWaypoints.length,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
 
-      setPendingWaypoints([...pendingWaypoints, newWaypoint]);
-      setIsUpdateNeeded(true);
-      setNewLocation("");
-      setSuggestions([]);
-    } catch (error) {
-      console.error("Lỗi khi thêm địa điểm:", error);
-      alert("Không thể thêm địa điểm. Vui lòng thử lại.");
-    }
-  };
+        setPendingWaypoints((prev) => [...prev, newWaypoint]);
+        setIsUpdateNeeded(true);
+        setNewLocation("");
+        setSuggestions([]);
+      } catch (error) {
+        console.error("Error adding location:", error);
+        alert("Unable to add location. Please try again.");
+      }
+    },
+    [goongApiKey, selectedRoute, pendingWaypoints]
+  );
 
-  const handleSelectRoute = (route: Routes) => {
+  const handleSelectRoute = useCallback((route: Routes) => {
     if (route && Array.isArray(route.Waypoint)) {
       setSelectedRoute(route);
       setPendingWaypoints([]);
       setIsUpdateNeeded(false);
       setIsSidebarOpen(false);
     } else {
-      console.warn("Tuyến đường không hợp lệ:", route);
+      console.warn("Invalid route:", route);
       setSelectedRoute(null);
       setPendingWaypoints([]);
       setIsUpdateNeeded(false);
     }
-  };
+  }, []);
 
-  const handleMoveUp = (index: number) => {
-    if (!selectedRoute || index === 0) return;
-    const allWaypoints = [...selectedRoute.Waypoint, ...pendingWaypoints];
-    [allWaypoints[index - 1], allWaypoints[index]] = [
-      { ...allWaypoints[index], index: index - 1 },
-      { ...allWaypoints[index - 1], index },
-    ];
-    const savedCount = selectedRoute.Waypoint.length;
-    setSelectedRoute({
-      ...selectedRoute,
-      Waypoint: allWaypoints.slice(0, savedCount),
-    });
-    setPendingWaypoints(allWaypoints.slice(savedCount));
-    setIsUpdateNeeded(true);
-  };
+  const handleMoveUp = useCallback(
+    (index: number) => {
+      if (!selectedRoute || index === 0) return;
+      const allWaypoints = [...selectedRoute.Waypoint, ...pendingWaypoints];
+      [allWaypoints[index - 1], allWaypoints[index]] = [
+        { ...allWaypoints[index], index: index - 1 },
+        { ...allWaypoints[index - 1], index },
+      ];
+      const savedCount = selectedRoute.Waypoint.length;
+      setSelectedRoute({
+        ...selectedRoute,
+        Waypoint: allWaypoints.slice(0, savedCount),
+      });
+      setPendingWaypoints(allWaypoints.slice(savedCount));
+      setIsUpdateNeeded(true);
+    },
+    [selectedRoute, pendingWaypoints]
+  );
 
-  const handleMoveDown = (index: number) => {
-    if (
-      !selectedRoute ||
-      index === selectedRoute.Waypoint.length + pendingWaypoints.length - 1
-    )
-      return;
-    const allWaypoints = [...selectedRoute.Waypoint, ...pendingWaypoints];
-    [allWaypoints[index], allWaypoints[index + 1]] = [
-      { ...allWaypoints[index + 1], index },
-      { ...allWaypoints[index], index: index + 1 },
-    ];
-    const savedCount = selectedRoute.Waypoint.length;
-    setSelectedRoute({
-      ...selectedRoute,
-      Waypoint: allWaypoints.slice(0, savedCount),
-    });
-    setPendingWaypoints(allWaypoints.slice(savedCount));
-    setIsUpdateNeeded(true);
-  };
+  const handleMoveDown = useCallback(
+    (index: number) => {
+      if (
+        !selectedRoute ||
+        index === selectedRoute.Waypoint.length + pendingWaypoints.length - 1
+      )
+        return;
+      const allWaypoints = [...selectedRoute.Waypoint, ...pendingWaypoints];
+      [allWaypoints[index], allWaypoints[index + 1]] = [
+        { ...allWaypoints[index + 1], index },
+        { ...allWaypoints[index], index: index + 1 },
+      ];
+      const savedCount = selectedRoute.Waypoint.length;
+      setSelectedRoute({
+        ...selectedRoute,
+        Waypoint: allWaypoints.slice(0, savedCount),
+      });
+      setPendingWaypoints(allWaypoints.slice(savedCount));
+      setIsUpdateNeeded(true);
+    },
+    [selectedRoute, pendingWaypoints]
+  );
 
-  const handleDeleteLocation = (index: number) => {
-    if (!selectedRoute) return;
-    const allWaypoints = [...selectedRoute.Waypoint, ...pendingWaypoints];
-    allWaypoints.splice(index, 1);
-    const savedCount = selectedRoute.Waypoint.length;
-    setSelectedRoute({
-      ...selectedRoute,
-      Waypoint: allWaypoints
-        .slice(0, savedCount)
-        .map((wp, i) => ({ ...wp, index: i })),
-    });
-    setPendingWaypoints(
-      allWaypoints
-        .slice(savedCount)
-        .map((wp, i) => ({ ...wp, index: savedCount + i }))
-    );
-    setIsUpdateNeeded(true);
-  };
+  const handleDeleteLocation = useCallback(
+    (index: number) => {
+      if (!selectedRoute) return;
+      const allWaypoints = [...selectedRoute.Waypoint, ...pendingWaypoints];
+      allWaypoints.splice(index, 1);
+      const savedCount = selectedRoute.Waypoint.length;
+      setSelectedRoute({
+        ...selectedRoute,
+        Waypoint: allWaypoints
+          .slice(0, savedCount)
+          .map((wp, i) => ({ ...wp, index: i })),
+      });
+      setPendingWaypoints(
+        allWaypoints
+          .slice(savedCount)
+          .map((wp, i) => ({ ...wp, index: savedCount + i }))
+      );
+      setIsUpdateNeeded(true);
+    },
+    [selectedRoute, pendingWaypoints]
+  );
 
-  const handleEditWaypoint = (waypoint: Waypoint) => {
+  const handleEditWaypoint = useCallback((waypoint: Waypoint) => {
     setEditingWaypoint(waypoint);
     setEditLocationName(waypoint.location || "");
-  };
+  }, []);
 
-  const handleSaveEdit = () => {
-    if (!selectedRoute || !editingWaypoint || !editLocationName.trim()) {
-      alert("Tên địa điểm không được để trống!");
+  const handleSaveEdit = useCallback(() => {
+    if (!selectedRoute || !editingWaypoint || !editLocationName?.trim()) {
+      alert("Location name cannot be empty!");
       return;
     }
 
@@ -424,9 +437,9 @@ const RouteManagement = () => {
     setIsUpdateNeeded(true);
     setEditingWaypoint(null);
     setEditLocationName("");
-  };
+  }, [selectedRoute, editingWaypoint, editLocationName, pendingWaypoints]);
 
-  const handleUpdateRoute = () => {
+  const handleUpdateRoute = useCallback(() => {
     if (!selectedRoute) return;
     setSelectedRoute({
       ...selectedRoute,
@@ -439,24 +452,27 @@ const RouteManagement = () => {
     });
     setPendingWaypoints([]);
     setIsUpdateNeeded(false);
-  };
+  }, [selectedRoute, pendingWaypoints]);
 
-  const handlePageChange = (page: number) => {
-    if (page < 1 || (routes && page > Math.ceil(routes.total / routes.limit)))
-      return;
-    setCurrentPage(page);
-    setSelectedRoute(null);
-    setPendingWaypoints([]);
-    setIsUpdateNeeded(false);
-    setIsSidebarOpen(false);
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1 || (routes && page > Math.ceil(routes.total / routes.limit)))
+        return;
+      setCurrentPage(page);
+      setSelectedRoute(null);
+      setPendingWaypoints([]);
+      setIsUpdateNeeded(false);
+      setIsSidebarOpen(false);
+    },
+    [routes]
+  );
 
-  const formatDate = (date: string) => {
+  const formatDate = useCallback((date: string) => {
     return new Date(date).toLocaleString("vi-VN", {
       dateStyle: "medium",
       timeStyle: "short",
     });
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
@@ -467,9 +483,7 @@ const RouteManagement = () => {
         className="container mx-auto px-4 py-8 max-w-7xl"
       >
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Quản Lý Tuyến Đường
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Route Management</h1>
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -483,7 +497,7 @@ const RouteManagement = () => {
               className="bg-blue-600 hover:bg-blue-700 rounded-lg"
               onClick={() => router.push("/company/create-route")}
             >
-              <Plus className="h-5 w-5 mr-2" /> Tạo Tuyến Mới
+              <Plus className="h-5 w-5 mr-2" /> Create New Route
             </Button>
           </div>
         </div>
@@ -496,7 +510,7 @@ const RouteManagement = () => {
           >
             <CardHeader className="bg-gray-50 border-b">
               <CardTitle className="text-xl font-semibold">
-                Danh Sách Tuyến
+                Route List
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 py-2">
@@ -535,13 +549,12 @@ const RouteManagement = () => {
                       </div>
                     ) : (
                       <div className="text-center text-gray-500 py-16">
-                        Không có tuyến đường.
+                        No routes available.
                       </div>
                     )}
                   </ScrollArea>
                 </div>
 
-                {/* Pagination */}
                 {routes && routes.total > 0 && (
                   <div className="flex items-center justify-between px-1">
                     <Button
@@ -554,7 +567,7 @@ const RouteManagement = () => {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <span className="text-sm font-medium text-gray-600">
-                      Trang {routes.page} /{" "}
+                      Page {routes.page} /{" "}
                       {Math.ceil(routes.total / routes.limit)}
                     </span>
                     <Button
@@ -578,7 +591,7 @@ const RouteManagement = () => {
             <Card className="overflow-hidden">
               <CardHeader className="bg-gray-50 border-b">
                 <CardTitle className="text-xl font-semibold">
-                  Bản Đồ Tuyến Đường
+                  Route Map
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -588,13 +601,13 @@ const RouteManagement = () => {
                 {selectedRoute && (
                   <div className="mt-6">
                     <Label className="text-sm font-medium text-gray-700">
-                      Thêm Địa Điểm
+                      Add Location
                     </Label>
                     <Command className="mt-2 border rounded-lg">
                       <CommandInput
-                        placeholder="Nhập địa điểm (ví dụ: TP. Hồ Chí Minh)"
+                        placeholder="Enter location (e.g., Ho Chi Minh City)"
                         value={newLocation}
-                        onValueChange={(value: any) => {
+                        onValueChange={(value: string) => {
                           setNewLocation(value);
                           fetchSuggestions(value);
                         }}
@@ -615,7 +628,7 @@ const RouteManagement = () => {
                           ))
                         ) : (
                           <CommandEmpty className="py-4 text-center text-gray-500">
-                            Không tìm thấy địa điểm
+                            No locations found
                           </CommandEmpty>
                         )}
                       </CommandList>
@@ -629,29 +642,29 @@ const RouteManagement = () => {
               <Card>
                 <CardHeader className="bg-gray-50 border-b">
                   <CardTitle className="text-xl font-semibold">
-                    Chi Tiết Tuyến: {selectedRoute.routeName}
+                    Route Details: {selectedRoute.routeName}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div>
                     <h4 className="text-lg font-medium text-gray-800 mb-3">
-                      Thông Tin Tuyến
+                      Route Information
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="font-semibold">Mã Tuyến:</span>{" "}
+                        <span className="font-semibold">Route ID:</span>{" "}
                         {selectedRoute.routeID}
                       </div>
                       <div>
-                        <span className="font-semibold">Công Ty:</span>{" "}
+                        <span className="font-semibold">Company:</span>{" "}
                         {selectedRoute.companyID}
                       </div>
                       <div>
-                        <span className="font-semibold">Ngày Tạo:</span>{" "}
+                        <span className="font-semibold">Created:</span>{" "}
                         {formatDate(selectedRoute.createdAt)}
                       </div>
                       <div>
-                        <span className="font-semibold">Cập Nhật:</span>{" "}
+                        <span className="font-semibold">Updated:</span>{" "}
                         {formatDate(selectedRoute.updatedAt)}
                       </div>
                     </div>
@@ -660,14 +673,14 @@ const RouteManagement = () => {
                   <div>
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="text-lg font-medium text-gray-800">
-                        Danh Sách Địa Điểm
+                        Location List
                       </h4>
                       {isUpdateNeeded && (
                         <Button
                           onClick={handleUpdateRoute}
                           className="bg-blue-600 hover:bg-blue-700 rounded-lg"
                         >
-                          <Save className="h-4 w-4 mr-2" /> Cập Nhật
+                          <Save className="h-4 w-4 mr-2" /> Update
                         </Button>
                       )}
                     </div>
@@ -683,7 +696,7 @@ const RouteManagement = () => {
                               )}, ${geo.coordinates[0].toFixed(4)})`;
                             } catch {
                               console.warn(
-                                `Tọa độ không hợp lệ cho điểm ${wp.waypointID}`
+                                `Invalid coordinates for waypoint ${wp.waypointID}`
                               );
                             }
                             return (
@@ -693,7 +706,7 @@ const RouteManagement = () => {
                               >
                                 <div className="flex-1 truncate">
                                   <span className="font-medium text-gray-800">
-                                    {wp.location || `Điểm ${idx + 1}`}
+                                    {wp.location || `Point ${idx + 1}`}
                                   </span>
                                   <span className="text-sm text-gray-500 ml-2 truncate">
                                     {coordinates}
@@ -760,18 +773,18 @@ const RouteManagement = () => {
           <DialogContent className="sm:max-w-md rounded-lg">
             <DialogHeader>
               <DialogTitle className="text-lg font-semibold">
-                Chỉnh Sửa Địa Điểm
+                Edit Location
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">
-                  Tên Địa Điểm
+                  Location Name
                 </Label>
                 <Input
                   value={editLocationName}
                   onChange={(e) => setEditLocationName(e.target.value)}
-                  placeholder="Nhập tên địa điểm"
+                  placeholder="Enter location name"
                   className="mt-1 rounded-lg"
                 />
               </div>
@@ -782,13 +795,13 @@ const RouteManagement = () => {
                 onClick={() => setEditingWaypoint(null)}
                 className="rounded-lg"
               >
-                Hủy
+                Cancel
               </Button>
               <Button
                 onClick={handleSaveEdit}
                 className="bg-blue-600 hover:bg-blue-700 rounded-lg"
               >
-                Lưu
+                Save
               </Button>
             </DialogFooter>
           </DialogContent>

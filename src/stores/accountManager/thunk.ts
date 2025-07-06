@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { manageAccount } from "@/services/manageAccount";
+import { AxiosError } from "axios";
 
 export const profile = createAsyncThunk(
   "account",
@@ -7,8 +8,9 @@ export const profile = createAsyncThunk(
     try {
       const response = await manageAccount.profile();
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -22,8 +24,9 @@ export const updateStatus = createAsyncThunk(
     try {
       const response = await manageAccount.updateStatus(accountID, status);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Thất bại");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -34,9 +37,10 @@ export const driverCompanyAcc = createAsyncThunk(
     try {
       const response = await manageAccount.getCompanyDriverAcc(req);
       return { page: req.page, data: response.data };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
       const message =
-        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
+        err.response?.data?.message || err.message || "Đã xảy ra lỗi";
       return rejectWithValue(message);
     }
   }
@@ -59,9 +63,10 @@ export const getCustomer = createAsyncThunk(
         page: req.page,
         data: response.data,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
       const message =
-        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
+        err.response?.data?.message || err.message || "Đã xảy ra lỗi";
       return rejectWithValue(message);
     }
   }
@@ -84,9 +89,10 @@ export const getCompany = createAsyncThunk(
         page: req.page,
         data: response.data,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
       const message =
-        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
+        err.response?.data?.message || err.message || "Đã xảy ra lỗi";
       return rejectWithValue(message);
     }
   }
@@ -110,9 +116,10 @@ export const getDriver = createAsyncThunk(
         page: req.page,
         data: response.data,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
       const message =
-        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
+        err.response?.data?.message || err.message || "Đã xảy ra lỗi";
       return rejectWithValue(message);
     }
   }

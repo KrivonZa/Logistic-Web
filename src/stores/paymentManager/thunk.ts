@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { managePayment } from "@/services/managePayment";
 import { CreatePayment, CancelPayment } from "@/types/payment";
+import { AxiosError } from "axios";
 
 export const createPayment = createAsyncThunk(
   "payment/create",
@@ -8,10 +9,9 @@ export const createPayment = createAsyncThunk(
     try {
       const response = await managePayment.createPayment(req);
       return response.data;
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
-      return rejectWithValue(message);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
@@ -22,10 +22,9 @@ export const cancelPayment = createAsyncThunk(
     try {
       const response = await managePayment.cancelPayment(req);
       return response.data;
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || error.message || "Đã xảy ra lỗi";
-      return rejectWithValue(message);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
     }
   }
 );
