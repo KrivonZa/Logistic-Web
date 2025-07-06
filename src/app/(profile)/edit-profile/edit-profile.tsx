@@ -1,3 +1,5 @@
+"use client";
+
 import { useAccount } from "@/hooks/useAccount";
 import isAuth from "@/components/isAuth";
 import { Card, CardContent } from "@/components/ui/card";
