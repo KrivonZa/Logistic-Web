@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Vehicles } from "@/types/vehicle";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -117,7 +118,7 @@ const Vehicle = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <VehicleUpdateAction vehicle={v} />
+                  <VehicleUpdateAction vehicle={v as Vehicles} />
                 </TableCell>
               </TableRow>
             ))}

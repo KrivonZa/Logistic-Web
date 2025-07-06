@@ -1,3 +1,5 @@
+export type VehicleStatus = "active" | "inactive";
+
 export interface Vehicles {
   vehicleID: string;
   companyID: string;
@@ -6,5 +8,5 @@ export interface Vehicles {
   loadCapacity: number;
   updatedAt: string;
   companyName: string;
-  status: string;
+  status: VehicleStatus;
 }
