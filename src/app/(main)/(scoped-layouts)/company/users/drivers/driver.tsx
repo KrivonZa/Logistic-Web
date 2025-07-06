@@ -34,6 +34,7 @@ import type { Driver } from "@/types/account";
 import isAuth from "@/components/isAuth";
 import ConfirmStatusActions from "@/components/layout/accountAction";
 import { Plus } from "lucide-react";
+import { AccountStatus } from "@/types/account";
 
 const LIMIT = 10;
 
@@ -147,7 +148,7 @@ const Drivers = () => {
                   <ConfirmStatusActions
                     accountID={driver.account.accountID}
                     fullName={driver.account.fullName}
-                    currentStatus={driver.account.status}
+                    currentStatus={driver.account.status as AccountStatus}
                     onSuccess={() =>
                       dispatch(driverCompanyAcc({ page, limit: LIMIT }))
                     }
