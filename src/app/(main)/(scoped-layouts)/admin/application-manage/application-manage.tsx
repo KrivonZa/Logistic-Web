@@ -37,6 +37,12 @@ import { useRouter } from "next/navigation";
 
 const STATUS_LIST = ["all", "PENDING", "APPROVED", "REJECTED"];
 
+interface ApplicationParams {
+  page: number;
+  limit: number;
+  applicationStatus?: string;
+}
+
 const statusMapping: Record<string, string> = {
   all: "Tất cả",
   PENDING: "Chờ duyệt",
@@ -59,7 +65,7 @@ const ApplicationManage = () => {
   const totalPages = Math.ceil(total / (allApplication?.limit || LIMIT));
 
   useEffect(() => {
-    const params: any = { page, limit: LIMIT };
+    const params: ApplicationParams = { page, limit: LIMIT };
     if (status !== "all") params.applicationStatus = status;
     dispatch(viewAllApplication(params));
   }, [dispatch, status, page]);
@@ -101,7 +107,9 @@ const ApplicationManage = () => {
         </div>
       ) : appList.length === 0 ? (
         <div className="text-center text-muted-foreground py-12">
-          Không có đơn nào thuộc trạng thái "{statusMapping[status]}"
+          Không có đơn nào thuộc trạng thái{' "'}
+          {statusMapping[status]}
+          {'"'}
         </div>
       ) : (
         <div className="overflow-auto border rounded-md">
