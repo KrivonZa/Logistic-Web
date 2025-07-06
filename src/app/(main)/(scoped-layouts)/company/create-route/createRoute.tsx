@@ -176,7 +176,7 @@ const CreateRoute = () => {
       if (mapRef.current.getSource("route"))
         mapRef.current.removeSource("route");
 
-      let allCoords: number[][] = [];
+      const allCoords: number[][] = [];
 
       for (let i = 0; i < waypoints.length - 1; i++) {
         const origin = `${waypoints[i].locationLatitude},${waypoints[i].locationLongtitude}`;
