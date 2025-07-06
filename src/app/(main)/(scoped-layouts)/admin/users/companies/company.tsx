@@ -218,25 +218,26 @@ const CompanyManagement = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      {["active", "pending", "inactive"].includes(
-                        acc.status
-                      ) && (
-                        <ConfirmStatusButton
-                          accountID={acc.accountID}
-                          fullName={acc.fullName}
-                          currentStatus={acc.status}
-                          onSuccess={() =>
-                            dispatch(
-                              getCompany({
-                                page,
-                                limit: 10,
-                                search,
-                                status: status === "all" ? "" : status,
-                              })
-                            )
-                          }
-                        />
-                      )}
+                      {(acc.status === "active" ||
+                        acc.status === "pending" ||
+                        acc.status === "inactive") &&
+                        acc.status && (
+                          <ConfirmStatusButton
+                            accountID={acc.accountID}
+                            fullName={acc.fullName}
+                            currentStatus={acc.status}
+                            onSuccess={() =>
+                              dispatch(
+                                getCompany({
+                                  page,
+                                  limit: 10,
+                                  search,
+                                  status: status === "all" ? "" : status,
+                                })
+                              )
+                            }
+                          />
+                        )}
                     </TableCell>
                   </TableRow>
                 );
@@ -311,7 +312,9 @@ const CompanyManagement = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                {["active", "pending", "inactive"].includes(acc.status) && (
+                {(acc.status === "active" ||
+                  acc.status === "pending" ||
+                  acc.status === "inactive") && (
                   <ConfirmStatusButton
                     accountID={acc.accountID}
                     fullName={acc.fullName}
@@ -335,7 +338,7 @@ const CompanyManagement = () => {
       </div>
 
       {/* Pagination */}
-      {companyAccounts?.total > 10 && (
+      {companyAccounts && companyAccounts?.total > 10 && (
         <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <Button
             variant="outline"

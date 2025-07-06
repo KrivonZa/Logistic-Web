@@ -3,6 +3,8 @@ export interface Login {
   password: string;
 }
 
+export type AccountStatus = "pending" | "active" | "inactive";
+
 export interface BusinessRegister {
   email: string;
   fullName: string;

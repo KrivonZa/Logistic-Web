@@ -36,6 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DriverDetail } from "@/types/account";
+import { AccountStatus } from "@/types/account";
 
 const STATUS_OPTIONS = [
   { label: "Tất cả", value: "all" },
@@ -206,8 +207,7 @@ const DriverManagement = () => {
                               <strong>Điện thoại:</strong> {detail.phoneNumber}
                             </p>
                             <p>
-                              <strong>Công ty:</strong>{" "}
-                              {detail.Company?.Account?.fullName}
+                              <strong>Công ty:</strong> {detail.companyName}
                             </p>
                             <p>
                               <strong>Số GPLX:</strong> {detail.licenseNumber}
@@ -229,7 +229,7 @@ const DriverManagement = () => {
                       <ConfirmStatusButton
                         accountID={acc.accountID}
                         fullName={acc.fullName}
-                        currentStatus={acc.status}
+                        currentStatus={acc.status as AccountStatus}
                         onSuccess={() =>
                           debouncedFetch(driverName, companyName, page, status)
                         }
@@ -291,8 +291,7 @@ const DriverManagement = () => {
                         <strong>Điện thoại:</strong> {detail.phoneNumber}
                       </p>
                       <p>
-                        <strong>Công ty:</strong>{" "}
-                        {detail.Company?.Account?.fullName}
+                        <strong>Công ty:</strong> {detail.companyName}
                       </p>
                       <p>
                         <strong>Số GPLX:</strong> {detail.licenseNumber}
@@ -314,7 +313,7 @@ const DriverManagement = () => {
                 <ConfirmStatusButton
                   accountID={acc.accountID}
                   fullName={acc.fullName}
-                  currentStatus={acc.status}
+                  currentStatus={acc.status as AccountStatus}
                   onSuccess={() =>
                     debouncedFetch(driverName, companyName, page, status)
                   }
@@ -326,7 +325,7 @@ const DriverManagement = () => {
       </div>
 
       {/* Pagination */}
-      {driverAccounts?.total > 10 && (
+      {driverAccounts && driverAccounts?.total > 10 && (
         <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <Button
             variant="outline"

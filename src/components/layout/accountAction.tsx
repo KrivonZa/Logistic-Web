@@ -12,7 +12,7 @@ import {
 import { updateStatus } from "@/stores/accountManager/thunk";
 import { toast } from "sonner";
 
-type AccountStatus = "active" | "inactive" | "pending";
+type AccountStatus = "pending" | "active" | "inactive";
 
 interface Props {
   accountID: string;

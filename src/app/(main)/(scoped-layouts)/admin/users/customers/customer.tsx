@@ -124,7 +124,7 @@ const CustomerManagement = () => {
             </div>
           </DialogContent>
         </Dialog>
-        {["active", "pending"].includes(acc.status) && (
+        {(acc.status === "active" || acc.status === "pending") && (
           <ConfirmButton
             accountID={acc.accountID}
             fullName={acc.fullName}
@@ -191,7 +191,7 @@ const CustomerManagement = () => {
             </div>
           </DialogContent>
         </Dialog>
-        {["active", "pending"].includes(acc.status) && (
+        {(acc.status === "active" || acc.status === "pending") && (
           <ConfirmButton
             accountID={acc.accountID}
             fullName={acc.fullName}
