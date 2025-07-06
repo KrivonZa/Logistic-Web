@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Vehicles } from "@/types/vehicle";
 
 interface VehicleData {
   vehicleID: string;
