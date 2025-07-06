@@ -12,6 +12,7 @@ import { useAppDispatch } from "@/stores";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import isAuth from "@/components/isAuth";
+import { CompanyDetail } from "@/types/account";
 
 const UserProfile = () => {
   const dispatch = useAppDispatch();
@@ -52,39 +53,40 @@ const UserProfile = () => {
   );
 
   const renderDetailFields = () => {
-    if (!info?.role) return null;
-
-    const detail = info.detail;
+    if (!info?.role || !info.detail) return null;
 
     switch (info.role) {
-      case "Company":
+      case "Company": {
+        const detail = info.detail as CompanyDetail;
+
         return (
           <>
             <Field label="Tên công ty" value={info?.fullName ?? ""} />
-            <Field label="Mã số thuế" value={detail?.taxCode ?? ""} />
+            <Field label="Mã số thuế" value={detail.taxCode ?? ""} />
             <Field
               label="Người đại diện hợp pháp"
-              value={detail?.legalRep ?? ""}
+              value={detail.legalRep ?? ""}
             />
             <Field label="Email liên hệ" value={info?.email ?? ""} />
-            <Field label="Số điện thoại" value={detail?.phoneNumber ?? ""} />
-            <Field label="Địa chỉ" value={detail?.address ?? ""} />
-            <Field label="Ngân hàng" value={detail?.bankName ?? ""} />
-            <Field label="Số tài khoản" value={detail?.bankAccount ?? ""} />
+            <Field label="Số điện thoại" value={detail.phoneNumber ?? ""} />
+            <Field label="Địa chỉ" value={detail.address ?? ""} />
+            <Field label="Ngân hàng" value={detail.bankName ?? ""} />
+            <Field label="Số tài khoản" value={detail.bankAccount ?? ""} />
             <LinkField
               label="Giấy phép kinh doanh"
-              url={detail?.license ?? ""}
+              url={detail.license ?? ""}
             />
             <Field
               label="Cập nhật lần cuối"
               value={
-                detail?.updatedAt
+                detail.updatedAt
                   ? new Date(detail.updatedAt).toLocaleDateString("vi-VN")
                   : ""
               }
             />
           </>
         );
+      }
 
       case "Admin":
         return (
