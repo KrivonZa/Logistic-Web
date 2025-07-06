@@ -161,8 +161,15 @@ const Order = () => {
                         status={order.status}
                         orderID={order.orderID}
                         onStatusUpdated={() => {
-                          const params: any = { page, limit: LIMIT };
-                          if (status !== "all") params.status = status;
+                          const params: {
+                            page: number;
+                            limit: number;
+                            status?: string;
+                          } = {
+                            page,
+                            limit: LIMIT,
+                            ...(status !== "all" && { status }),
+                          };
                           dispatch(companyOrder(params));
                         }}
                       />

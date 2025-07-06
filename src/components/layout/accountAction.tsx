@@ -42,7 +42,7 @@ export default function ConfirmStatusActions({
       ).unwrap();
       toast.success(`Đã cập nhật trạng thái cho ${fullName}`);
       onSuccess?.();
-    } catch (err) {
+    } catch {
       toast.error("Cập nhật trạng thái thất bại");
     } finally {
       setOpen(false);

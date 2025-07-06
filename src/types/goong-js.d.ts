@@ -8,14 +8,14 @@ declare module "@goongmaps/goong-js" {
 
   export class Map {
     constructor(options: GoongMapOptions);
-    on(type: string, listener: (...args: any[]) => void): void;
-    getLayer(id: string): any;
+    on(type: string, listener: (...args: unknown[]) => void): void;
+    getLayer(id: string): unknown;
     removeLayer(id: string): void;
-    getSource(id: string): any;
+    getSource(id: string): unknown;
     removeSource(id: string): void;
-    addSource(id: string, source: any): void;
-    addLayer(layer: any): void;
-    fitBounds(bounds: LngLatBounds, options?: any): void;
+    addSource(id: string, source: GeoJSONSourceRaw): void;
+    addLayer(layer: LayerSpecification): void;
+    fitBounds(bounds: LngLatBounds, options?: Record<string, unknown>): void;
     flyTo(options: {
       center: [number, number];
       zoom?: number;
@@ -34,7 +34,7 @@ declare module "@goongmaps/goong-js" {
   }
 
   export class Popup {
-    constructor(options?: any);
+    constructor(options?: Record<string, unknown>);
     setText(text: string): Popup;
     setHTML(html: string): Popup;
   }
@@ -53,4 +53,17 @@ declare module "@goongmaps/goong-js" {
   };
 
   export default goong;
+
+  export type GeoJSONSourceRaw = {
+    type: "geojson";
+    data: GeoJSON.FeatureCollection | string;
+  };
+
+  export type LayerSpecification = {
+    id: string;
+    type: string;
+    source: string;
+    layout?: Record<string, unknown>;
+    paint?: Record<string, unknown>;
+  };
 }

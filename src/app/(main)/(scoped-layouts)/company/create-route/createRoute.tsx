@@ -30,20 +30,12 @@ import { createRoute, createWaypoints } from "@/types/route";
 import { useAppDispatch } from "@/stores";
 import { useRoute } from "@/hooks/useRoute";
 import { createRoutes } from "@/stores/routeManager/thunk";
-import isAuth from "@/components/isAuth";
+import type { FeatureCollection } from "geojson";
 
 // Type cho Goong
-import type {
-  Marker as GoongMarker,
-  Popup as GoongPopup,
-  LngLatBounds as GoongLngLatBounds,
-  Map as GoongMapInstance,
-} from "@goongmaps/goong-js";
-
-interface Suggestion {
-  place_id: string;
-  description: string;
-}
+type GoongMapModule = typeof import("@goongmaps/goong-js");
+type MarkerInstance = import("@goongmaps/goong-js").Marker;
+type Suggestion = { place_id: string; description: string };
 
 const SortableItem = ({
   id,
@@ -90,14 +82,13 @@ const CreateRoute = () => {
   const [routeName, setRouteName] = useState("");
   const [waypoints, setWaypoints] = useState<createWaypoints[]>([]);
   const [GoongMap, setGoongMap] = useState<{
-    Marker: typeof GoongMarker;
-    Popup: typeof GoongPopup;
-    LngLatBounds: typeof GoongLngLatBounds;
+    Marker: GoongMapModule["Marker"];
+    Popup: GoongMapModule["Popup"];
+    LngLatBounds: GoongMapModule["LngLatBounds"];
   } | null>(null);
-
-  const mapRef = useRef<GoongMapInstance | null>(null);
+  const mapRef = useRef<import("@goongmaps/goong-js").Map | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const [markers, setMarkers] = useState<Record<string, GoongMarker>>({});
+  const [markers, setMarkers] = useState<Record<string, MarkerInstance>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
@@ -105,12 +96,35 @@ const CreateRoute = () => {
   const goongMaptilesKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY!;
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
   );
 
+  const fetchSuggestions = debounce(async (query: string) => {
+    if (!query) return setSuggestions([]);
+
+    try {
+      const res = await axios.get("https://rsapi.goong.io/Place/AutoComplete", {
+        params: {
+          api_key: goongApiKey,
+          input: query,
+          location: "10.762622,106.660172",
+        },
+      });
+      setSuggestions(res.data.predictions);
+    } catch (error) {
+      console.error("Lỗi khi lấy gợi ý:", error);
+    }
+  }, 300);
+
   useEffect(() => {
-    const fetchGoong = async () => {
-      const mod = await import("@goongmaps/goong-js");
+    fetchSuggestions(searchQuery);
+    return () => fetchSuggestions.cancel();
+  }, [searchQuery]);
+
+  useEffect(() => {
+    import("@goongmaps/goong-js").then((mod) => {
       const goong = mod.default;
       goong.accessToken = goongMaptilesKey;
 
@@ -122,6 +136,7 @@ const CreateRoute = () => {
       });
 
       mapRef.current = map;
+
       setGoongMap({
         Marker: mod.Marker,
         Popup: mod.Popup,
@@ -141,35 +156,13 @@ const CreateRoute = () => {
           map.setCenter(userPos);
         });
       }
-    };
+    });
 
-    fetchGoong();
     return () => {
       Object.values(markers).forEach((m) => m.remove());
       mapRef.current?.remove();
     };
   }, []);
-
-  const fetchSuggestions = debounce(async (query: string) => {
-    if (!query) return setSuggestions([]);
-    try {
-      const res = await axios.get("https://rsapi.goong.io/Place/AutoComplete", {
-        params: {
-          api_key: goongApiKey,
-          input: query,
-          location: "10.762622,106.660172",
-        },
-      });
-      setSuggestions(res.data.predictions);
-    } catch (err) {
-      console.error("Gợi ý địa điểm lỗi:", err);
-    }
-  }, 300);
-
-  useEffect(() => {
-    fetchSuggestions(searchQuery);
-    return () => fetchSuggestions.cancel();
-  }, [searchQuery]);
 
   useEffect(() => {
     if (GoongMap) drawRoute();
@@ -179,11 +172,12 @@ const CreateRoute = () => {
     if (!GoongMap || !mapRef.current || waypoints.length < 2) return;
 
     try {
-      const map = mapRef.current;
-      if (map.getLayer("route")) map.removeLayer("route");
-      if (map.getSource("route")) map.removeSource("route");
+      if (mapRef.current.getLayer("route")) mapRef.current.removeLayer("route");
+      if (mapRef.current.getSource("route"))
+        mapRef.current.removeSource("route");
 
       let allCoords: number[][] = [];
+
       for (let i = 0; i < waypoints.length - 1; i++) {
         const origin = `${waypoints[i].locationLatitude},${waypoints[i].locationLongtitude}`;
         const destination = `${waypoints[i + 1].locationLatitude},${
@@ -191,26 +185,40 @@ const CreateRoute = () => {
         }`;
 
         const res = await axios.get("https://rsapi.goong.io/Direction", {
-          params: { origin, destination, vehicle: "car", api_key: goongApiKey },
+          params: {
+            origin,
+            destination,
+            vehicle: "car",
+            api_key: goongApiKey,
+          },
         });
 
         const segment = polyline.decode(
           res.data.routes?.[0]?.overview_polyline?.points || ""
         );
+
         if (i === 0) allCoords.push(...segment);
         else allCoords.push(...segment.slice(1));
       }
 
-      const geoJSON = {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
-        },
+      if (!allCoords.length) return;
+
+      const geoJSON: FeatureCollection = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
+            },
+            properties: {},
+          },
+        ],
       };
 
-      map.addSource("route", { type: "geojson", data: geoJSON });
-      map.addLayer({
+      mapRef.current.addSource("route", { type: "geojson", data: geoJSON });
+      mapRef.current.addLayer({
         id: "route",
         type: "line",
         source: "route",
@@ -219,34 +227,47 @@ const CreateRoute = () => {
       });
 
       const bounds = waypoints.reduce(
-        (b, wp) => b.extend([+wp.locationLongtitude, +wp.locationLatitude]),
+        (b, wp) =>
+          b.extend([
+            parseFloat(wp.locationLongtitude),
+            parseFloat(wp.locationLatitude),
+          ]),
         new GoongMap.LngLatBounds(
-          [+waypoints[0].locationLongtitude, +waypoints[0].locationLatitude],
-          [+waypoints[0].locationLongtitude, +waypoints[0].locationLatitude]
+          [
+            parseFloat(waypoints[0].locationLongtitude),
+            parseFloat(waypoints[0].locationLatitude),
+          ],
+          [
+            parseFloat(waypoints[0].locationLongtitude),
+            parseFloat(waypoints[0].locationLatitude),
+          ]
         )
       );
 
-      map.fitBounds(bounds, { padding: 60 });
+      mapRef.current.fitBounds(bounds, { padding: 60 });
     } catch (err) {
-      console.error("Vẽ tuyến đường lỗi:", err);
+      console.error("Lỗi khi vẽ route:", err);
     }
   };
 
   const addWaypoint = (lat: number, lng: number, name: string) => {
     if (!GoongMap || !mapRef.current) return;
-    const id = Date.now().toString();
+
     const newWp: createWaypoints = {
-      id,
+      id: Date.now().toString(),
       locationLatitude: lat.toFixed(6),
       locationLongtitude: lng.toFixed(6),
       locationName: name,
       index: waypoints.length + 1,
     };
+
     setWaypoints((wps) => [...wps, newWp]);
+
     const marker = new GoongMap.Marker({ color: "#1976d2" })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
-    setMarkers((prev) => ({ ...prev, [id]: marker }));
+
+    setMarkers((prev) => ({ ...prev, [newWp.id]: marker }));
   };
 
   const handleSelectSuggestion = async (placeId: string, desc: string) => {
@@ -259,44 +280,48 @@ const CreateRoute = () => {
       setSearchQuery("");
       setSuggestions([]);
     } catch (err) {
-      console.error("Chi tiết địa điểm lỗi:", err);
+      console.error("Lỗi khi lấy chi tiết địa điểm:", err);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
+
     setWaypoints((wps) => {
       const oldIdx = wps.findIndex((w) => w.id === active.id);
       const newIdx = wps.findIndex((w) => w.id === over.id);
-      return arrayMove(wps, oldIdx, newIdx).map((w, i) => ({
-        ...w,
-        index: i + 1,
-      }));
+      const newWps = arrayMove(wps, oldIdx, newIdx);
+      return newWps.map((w, i) => ({ ...w, index: i + 1 }));
     });
   };
 
   const handleSubmit = async () => {
+    const payload: createRoute = {
+      routeName,
+      waypoints,
+    };
     try {
-      await dispatch(createRoutes({ routeName, waypoints })).unwrap();
+      const result = await dispatch(createRoutes(payload)).unwrap();
+      console.log("Route created:", result);
     } catch (err) {
-      console.error("Tạo hành trình lỗi:", err);
+      console.error("Tạo route thất bại:", err);
     }
   };
 
   return (
     <motion.div
-      className="relative w-full h-screen flex"
+      className="relative w-full h-screen flex flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       <div ref={mapContainer} className="absolute top-0 left-0 w-full h-full" />
-
       <div className="absolute top-0 left-0 p-4 w-96 z-10">
         <Input
           placeholder="Tìm kiếm địa điểm..."
           value={searchQuery}
+          className="bg-white"
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         {suggestions.length > 0 && (
@@ -323,6 +348,7 @@ const CreateRoute = () => {
           value={routeName}
           onChange={(e) => setRouteName(e.target.value)}
         />
+
         <h3 className="font-semibold text-lg mt-6 mb-2">Danh sách điểm</h3>
         <DndContext
           sensors={sensors}
@@ -375,4 +401,4 @@ const CreateRoute = () => {
   );
 };
 
-export default isAuth(CreateRoute, ["Company"]);
+export default CreateRoute;

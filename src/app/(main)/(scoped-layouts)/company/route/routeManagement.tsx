@@ -42,8 +42,8 @@ import { useRoute } from "@/hooks/useRoute";
 import { getRoutesByCompany } from "@/stores/routeManager/thunk";
 import { Routes, Waypoint } from "@/types/route";
 import debounce from "lodash/debounce";
-import isAuth from "@/components/isAuth";
-import goong, { Map, Marker, Popup, LngLatBounds } from "@goongmaps/goong-js";
+import goong, { Map, Marker } from "@goongmaps/goong-js";
+import type { FeatureCollection } from "geojson";
 
 const RouteManagement = () => {
   const [selectedRoute, setSelectedRoute] = useState<Routes | null>(null);
@@ -240,13 +240,19 @@ const RouteManagement = () => {
         return;
       }
 
-      const geoJSON = {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
-        },
-      };
+      const geoJSON: FeatureCollection = {
+              type: "FeatureCollection",
+              features: [
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "LineString",
+                    coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
+                  },
+                  properties: {},
+                },
+              ],
+            };
 
       mapRef.current.addSource("route", {
         type: "geojson",
@@ -483,7 +489,9 @@ const RouteManagement = () => {
         className="container mx-auto px-4 py-8 max-w-7xl"
       >
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Route Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Quản lý tuyến đường
+          </h1>
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -497,7 +505,7 @@ const RouteManagement = () => {
               className="bg-blue-600 hover:bg-blue-700 rounded-lg"
               onClick={() => router.push("/company/create-route")}
             >
-              <Plus className="h-5 w-5 mr-2" /> Create New Route
+              <Plus className="h-5 w-5 mr-2" /> Tạo tuyến đường mới
             </Button>
           </div>
         </div>
@@ -510,7 +518,7 @@ const RouteManagement = () => {
           >
             <CardHeader className="bg-gray-50 border-b">
               <CardTitle className="text-xl font-semibold">
-                Route List
+                Danh sách tuyến đường
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 py-2">
@@ -549,7 +557,7 @@ const RouteManagement = () => {
                       </div>
                     ) : (
                       <div className="text-center text-gray-500 py-16">
-                        No routes available.
+                        Không tìm thấy tuyến đường
                       </div>
                     )}
                   </ScrollArea>
@@ -567,7 +575,7 @@ const RouteManagement = () => {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <span className="text-sm font-medium text-gray-600">
-                      Page {routes.page} /{" "}
+                      Trang {routes.page} /{" "}
                       {Math.ceil(routes.total / routes.limit)}
                     </span>
                     <Button
@@ -590,9 +598,7 @@ const RouteManagement = () => {
           <div className="lg:col-span-3 space-y-6">
             <Card className="overflow-hidden">
               <CardHeader className="bg-gray-50 border-b">
-                <CardTitle className="text-xl font-semibold">
-                  Route Map
-                </CardTitle>
+                <CardTitle className="text-xl font-semibold">Bản đồ</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="h-[500px] rounded-lg overflow-hidden shadow-lg">
@@ -601,11 +607,11 @@ const RouteManagement = () => {
                 {selectedRoute && (
                   <div className="mt-6">
                     <Label className="text-sm font-medium text-gray-700">
-                      Add Location
+                      Thêm địa điểm
                     </Label>
                     <Command className="mt-2 border rounded-lg">
                       <CommandInput
-                        placeholder="Enter location (e.g., Ho Chi Minh City)"
+                        placeholder="Tìm địa điểm (vd., Thành phố Hồ Chí Minh)"
                         value={newLocation}
                         onValueChange={(value: string) => {
                           setNewLocation(value);
@@ -628,7 +634,7 @@ const RouteManagement = () => {
                           ))
                         ) : (
                           <CommandEmpty className="py-4 text-center text-gray-500">
-                            No locations found
+                            Không tìm thấy địa điểm
                           </CommandEmpty>
                         )}
                       </CommandList>
@@ -642,29 +648,29 @@ const RouteManagement = () => {
               <Card>
                 <CardHeader className="bg-gray-50 border-b">
                   <CardTitle className="text-xl font-semibold">
-                    Route Details: {selectedRoute.routeName}
+                    Chi tiết tuyến đường: {selectedRoute.routeName}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div>
                     <h4 className="text-lg font-medium text-gray-800 mb-3">
-                      Route Information
+                      Thông tin tuyến đường
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="font-semibold">Route ID:</span>{" "}
+                        <span className="font-semibold">Mã tuyến đường:</span>{" "}
                         {selectedRoute.routeID}
                       </div>
                       <div>
-                        <span className="font-semibold">Company:</span>{" "}
+                        <span className="font-semibold">Công ty:</span>{" "}
                         {selectedRoute.companyID}
                       </div>
                       <div>
-                        <span className="font-semibold">Created:</span>{" "}
+                        <span className="font-semibold">Ngày tạo:</span>{" "}
                         {formatDate(selectedRoute.createdAt)}
                       </div>
                       <div>
-                        <span className="font-semibold">Updated:</span>{" "}
+                        <span className="font-semibold">Ngày cập nhật:</span>{" "}
                         {formatDate(selectedRoute.updatedAt)}
                       </div>
                     </div>
@@ -673,14 +679,14 @@ const RouteManagement = () => {
                   <div>
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="text-lg font-medium text-gray-800">
-                        Location List
+                        Danh sách địa điểm
                       </h4>
                       {isUpdateNeeded && (
                         <Button
                           onClick={handleUpdateRoute}
                           className="bg-blue-600 hover:bg-blue-700 rounded-lg"
                         >
-                          <Save className="h-4 w-4 mr-2" /> Update
+                          <Save className="h-4 w-4 mr-2" /> Cập nhật
                         </Button>
                       )}
                     </div>
@@ -773,13 +779,13 @@ const RouteManagement = () => {
           <DialogContent className="sm:max-w-md rounded-lg">
             <DialogHeader>
               <DialogTitle className="text-lg font-semibold">
-                Edit Location
+                Tùy chỉnh
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">
-                  Location Name
+                  Địa điểm
                 </Label>
                 <Input
                   value={editLocationName}
@@ -795,13 +801,13 @@ const RouteManagement = () => {
                 onClick={() => setEditingWaypoint(null)}
                 className="rounded-lg"
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSaveEdit}
                 className="bg-blue-600 hover:bg-blue-700 rounded-lg"
               >
-                Save
+                Lưu
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -811,4 +817,4 @@ const RouteManagement = () => {
   );
 };
 
-export default isAuth(RouteManagement, ["Company"]);
+export default RouteManagement;
