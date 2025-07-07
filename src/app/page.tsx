@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import ClientHome from "./ClientHome";
 
-export const metadata: Metadata = {
-  title: "Homepage",
-  description: "Homepage description",
-};
-
-export default function Home() {
-  redirect("/login");
+export default function Page() {
+  return <ClientHome />;
 }
