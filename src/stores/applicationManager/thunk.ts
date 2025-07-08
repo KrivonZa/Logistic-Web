@@ -32,7 +32,12 @@ export const createApplication = createAsyncThunk(
 export const viewAllApplication = createAsyncThunk(
   "application/viewAll",
   async (
-    req: { page: number; limit: number; applicationStatus?: string },
+    req: {
+      page: number;
+      limit: number;
+      applicationStatus?: string;
+      applicationType?: string;
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -63,6 +68,32 @@ export const reviewApplication = createAsyncThunk(
   async (req: FormData, { rejectWithValue }) => {
     try {
       const response = await manageApplication.reviewApplication(req);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
+    }
+  }
+);
+
+export const withdrawal = createAsyncThunk(
+  "application/withdrawal",
+  async (req: FormData, { rejectWithValue }) => {
+    try {
+      const response = await manageApplication.withdrawal(req);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      return rejectWithValue(err.response?.data?.message || "Thất bại");
+    }
+  }
+);
+
+export const driverRequest = createAsyncThunk(
+  "application/driver-request",
+  async (req: FormData, { rejectWithValue }) => {
+    try {
+      const response = await manageApplication.driverRequest(req);
       return response.data;
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;

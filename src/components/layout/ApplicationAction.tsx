@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useAppDispatch } from "@/stores";
 import { Button } from "@/components/ui/button";
@@ -13,11 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { reviewApplication } from "@/stores/applicationManager/thunk";
+import {
+  reviewApplication,
+  withdrawal,
+  driverRequest,
+} from "@/stores/applicationManager/thunk";
 
 interface Props {
   applicationID: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
+  applicationType: string;
   fullName: string;
   onReload: () => void;
 }
@@ -25,6 +28,7 @@ interface Props {
 const ApplicationAction = ({
   applicationID,
   status,
+  applicationType,
   fullName,
   onReload,
 }: Props) => {
@@ -49,7 +53,21 @@ const ApplicationAction = ({
     if (file) formData.append("senderFile", file);
 
     try {
-      await dispatch(reviewApplication(formData)).unwrap();
+      switch (applicationType) {
+        case "REQUEST_BECOME_COMPANY":
+          await dispatch(reviewApplication(formData)).unwrap();
+          break;
+        case "REQUEST_TO_WITHDRAW":
+          await dispatch(withdrawal(formData)).unwrap();
+          break;
+        case "REQUEST_DRIVERS_ACCOUNT":
+          await dispatch(driverRequest(formData)).unwrap();
+          return;
+        default:
+          toast.error("Loại đơn không hợp lệ");
+          return;
+      }
+
       toast.success("Cập nhật trạng thái thành công");
       onReload();
       resetState();

@@ -5,6 +5,8 @@ import {
   viewAllApplication,
   viewApplicationDetail,
   reviewApplication,
+  withdrawal,
+  driverRequest,
 } from "./thunk";
 import { ApplicationResponse } from "@/types/application";
 
@@ -82,6 +84,24 @@ export const manageApplicationSlice = createSlice({
         state.loading = false;
       })
       .addCase(reviewApplication.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(withdrawal.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(withdrawal.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(withdrawal.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(driverRequest.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(driverRequest.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(driverRequest.rejected, (state) => {
         state.loading = false;
       });
   },

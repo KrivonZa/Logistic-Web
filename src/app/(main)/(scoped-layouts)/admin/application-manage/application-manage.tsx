@@ -36,18 +36,25 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const STATUS_LIST = ["all", "PENDING", "APPROVED", "REJECTED"];
-
-interface ApplicationParams {
-  page: number;
-  limit: number;
-  applicationStatus?: string;
-}
+const TYPE_LIST = [
+  "all",
+  "REQUEST_DRIVERS_ACCOUNT",
+  "REQUEST_BECOME_COMPANY",
+  "REQUEST_TO_WITHDRAW",
+];
 
 const statusMapping: Record<string, string> = {
-  all: "Tất cả",
+  all: "Tất cả trạng thái",
   PENDING: "Chờ duyệt",
   APPROVED: "Đã duyệt",
   REJECTED: "Đã từ chối",
+};
+
+const typeMapping: Record<string, string> = {
+  all: "Tất cả loại đơn",
+  REQUEST_DRIVERS_ACCOUNT: "Yêu cầu tài khoản tài xế",
+  REQUEST_BECOME_COMPANY: "Yêu cầu trở thành công ty",
+  REQUEST_TO_WITHDRAW: "Yêu cầu rút tiền",
 };
 
 const LIMIT = 10;
@@ -58,6 +65,7 @@ const ApplicationManage = () => {
   const router = useRouter();
 
   const [status, setStatus] = useState("all");
+  const [type, setType] = useState("all");
   const [page, setPage] = useState(1);
 
   const appList = allApplication?.data || [];
@@ -65,10 +73,12 @@ const ApplicationManage = () => {
   const totalPages = Math.ceil(total / (allApplication?.limit || LIMIT));
 
   useEffect(() => {
-    const params: ApplicationParams = { page, limit: LIMIT };
+    const params: any = { page, limit: LIMIT };
     if (status !== "all") params.applicationStatus = status;
+    if (type !== "all") params.applicationType = type;
+    console.log(params);
     dispatch(viewAllApplication(params));
-  }, [dispatch, status, page]);
+  }, [dispatch, status, type, page]);
 
   return (
     <motion.div
@@ -77,9 +87,9 @@ const ApplicationManage = () => {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="p-6 space-y-6"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-2xl font-bold">Danh sách đơn yêu cầu</h2>
-        <div className="w-[200px]">
+        <div className="flex gap-4 flex-wrap">
           <Select
             value={status}
             onValueChange={(val) => {
@@ -87,7 +97,7 @@ const ApplicationManage = () => {
               setStatus(val);
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Lọc trạng thái" />
             </SelectTrigger>
             <SelectContent>
@@ -98,6 +108,36 @@ const ApplicationManage = () => {
               ))}
             </SelectContent>
           </Select>
+
+          <Select
+            value={type}
+            onValueChange={(val) => {
+              setPage(1);
+              setType(val);
+            }}
+          >
+            <SelectTrigger className="w-[260px]">
+              <SelectValue placeholder="Lọc loại đơn" />
+            </SelectTrigger>
+            <SelectContent>
+              {TYPE_LIST.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {typeMapping[t]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              setStatus("all");
+              setType("all");
+              setPage(1);
+            }}
+          >
+            Xóa lọc
+          </Button>
         </div>
       </div>
 
@@ -107,9 +147,8 @@ const ApplicationManage = () => {
         </div>
       ) : appList.length === 0 ? (
         <div className="text-center text-muted-foreground py-12">
-          Không có đơn nào thuộc trạng thái{' "'}
-          {statusMapping[status]}
-          {'"'}
+          Không có đơn nào thuộc {typeMapping[type].toLowerCase()} và trạng thái{" "}
+          {statusMapping[status].toLowerCase()}
         </div>
       ) : (
         <div className="overflow-auto border rounded-md">
@@ -120,6 +159,7 @@ const ApplicationManage = () => {
                 <TableHead>Người gửi</TableHead>
                 <TableHead>Ghi chú</TableHead>
                 <TableHead>File</TableHead>
+                <TableHead>Loại</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Ngày tạo</TableHead>
                 <TableHead className="text-center">Hành động</TableHead>
@@ -152,6 +192,7 @@ const ApplicationManage = () => {
                       "—"
                     )}
                   </TableCell>
+                  <TableCell>{typeMapping[app.type]}</TableCell>
                   <TableCell className="font-medium text-yellow-600 capitalize">
                     {statusMapping[app.status]}
                   </TableCell>
@@ -176,6 +217,7 @@ const ApplicationManage = () => {
                         applicationID={app.applicationID}
                         fullName={app.sender.fullName || "Người dùng"}
                         status={app.status}
+                        applicationType={app.type}
                         onReload={() =>
                           dispatch(
                             viewAllApplication({
@@ -183,6 +225,8 @@ const ApplicationManage = () => {
                               limit: LIMIT,
                               applicationStatus:
                                 status !== "all" ? status : undefined,
+                              applicationType:
+                                type !== "all" ? type : undefined,
                             })
                           )
                         }

@@ -38,9 +38,6 @@ const CreateDriver = () => {
     const allowedTypes = [
       "application/vnd.ms-excel",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -55,16 +52,27 @@ const CreateDriver = () => {
 
     try {
       const uploadRes = await dispatch(uploadFile(file)).unwrap();
-      const senderFileUrl = uploadRes.url;
+      const senderFileUrl = uploadRes?.url || uploadRes?.data;
 
-      const applicationPayload = {
-        senderID: info?.accountID as string,
-        senderNote,
-        type: "REQUEST_DRIVERS_ACCOUNT",
-        senderFileUrl,
-      };
+      if (!senderFileUrl) {
+        toast.error("Upload file thất bại");
+        return;
+      }
 
-      await dispatch(createApplication(applicationPayload)).unwrap();
+      if (!info?.accountID) {
+        toast.error("Không tìm thấy tài khoản người dùng.");
+        return;
+      }
+
+      await dispatch(
+        createApplication({
+          senderID: info.accountID,
+          senderNote,
+          type: "REQUEST_DRIVERS_ACCOUNT",
+          senderFileUrl,
+        })
+      ).unwrap();
+
       toast.success("Gửi đơn thành công!");
       setFile(null);
       setSenderNote("");
@@ -84,7 +92,7 @@ const CreateDriver = () => {
       <h1 className="text-2xl font-semibold">Nộp đơn đăng ký tài xế</h1>
 
       <a
-        href="/files/template.xlsx"
+        href="https://d2qhqr36c8dhx2.cloudfront.net/1751968223151.xlsx"
         download
         className="text-blue-600 underline hover:text-blue-800"
       >
@@ -93,7 +101,7 @@ const CreateDriver = () => {
 
       <Input
         type="file"
-        accept=".xlsx,.xls,.pdf,.doc,.docx"
+        accept=".xlsx,.xls"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
         className="w-full max-w-md"
       />

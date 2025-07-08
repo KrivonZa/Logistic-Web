@@ -13,7 +13,7 @@ import { updateAccount } from "@/stores/accountManager/thunk";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-// 🧩 Zod schema (license không bắt buộc)
+// 🧩 Zod schema
 const formSchema = z.object({
   companyName: z.string().min(2, "Tên doanh nghiệp tối thiểu 2 ký tự"),
   taxCode: z.string().min(10, "Mã số thuế không hợp lệ"),
@@ -53,11 +53,7 @@ export default function CompanyEditForm({ info }: Props) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const avatarFileRef = useRef<File | null>(null);
-
   const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
-  const [currentLicenseUrl, setCurrentLicenseUrl] = useState<string | null>(
-    info.detail?.license || null
-  );
 
   const {
     register,
@@ -68,6 +64,7 @@ export default function CompanyEditForm({ info }: Props) {
     resolver: zodResolver(formSchema),
   });
 
+  // Set initial values from props
   useEffect(() => {
     const d = info.detail;
     setValue("companyName", info.fullName || "");
@@ -79,7 +76,6 @@ export default function CompanyEditForm({ info }: Props) {
     setValue("bankName", d?.bankName || "");
     setValue("bankAccount", d?.bankAccount || "");
     setAvatar(info.avatar || null);
-    setCurrentLicenseUrl(d?.license || null);
   }, [info, setValue]);
 
   const onSubmit = async (data: FormData) => {
@@ -87,7 +83,6 @@ export default function CompanyEditForm({ info }: Props) {
       const formData = new FormData();
       formData.append("fullName", data.companyName);
       formData.append("email", data.email);
-
       formData.append("company[taxCode]", data.taxCode);
       formData.append("company[legalRep]", data.legalRep);
       formData.append("company[phoneNumber]", data.phoneNumber);
@@ -95,7 +90,8 @@ export default function CompanyEditForm({ info }: Props) {
       formData.append("company[bankName]", data.bankName);
       formData.append("company[bankAccount]", data.bankAccount);
 
-      if (data.license) {
+      // 🛠️ Chỉ gửi nếu user chọn file mới
+      if (data.license instanceof File) {
         formData.append("company[license]", data.license);
       }
 
@@ -150,7 +146,7 @@ export default function CompanyEditForm({ info }: Props) {
         </div>
       ))}
 
-      {/* License preview + upload */}
+      {/* License upload */}
       <div className="space-y-1.5">
         <Label htmlFor="license">Giấy phép kinh doanh</Label>
         <Input
@@ -169,7 +165,7 @@ export default function CompanyEditForm({ info }: Props) {
         )}
       </div>
 
-      {/* Submit button */}
+      {/* Submit */}
       <div className="flex justify-end pt-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}

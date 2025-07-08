@@ -27,4 +27,5 @@ export type CreateApplication = {
   senderNote: string;
   type: string;
   senderFileUrl: string;
+  withdrawAmount?: number;
 };

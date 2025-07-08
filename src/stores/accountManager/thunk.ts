@@ -131,8 +131,11 @@ export const updateAccount = createAsyncThunk(
     try {
       const response = await manageAccount.updateAccount(formData);
       return response.data;
-    } catch (error) {
-      return rejectWithValue("Không thành công.");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      const message =
+        err.response?.data?.message || err.message || "Đã xảy ra lỗi";
+      return rejectWithValue(message);
     }
   }
 );

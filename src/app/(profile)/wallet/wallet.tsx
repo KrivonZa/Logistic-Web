@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,20 +17,59 @@ import { Textarea } from "@/components/ui/textarea";
 
 import isAuth from "@/components/isAuth";
 import { useAccount } from "@/hooks/useAccount";
+import { useApplication } from "@/hooks/useApplication";
+import { useAppDispatch } from "@/stores";
+import { createApplication } from "@/stores/applicationManager/thunk";
+import { uploadFile } from "@/stores/fileManager/thunk";
 
 const Wallet = () => {
   const { info } = useAccount();
+  const { loading } = useApplication();
+  const dispatch = useAppDispatch();
+
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState("");
+  const [open, setOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
 
-  const handleSubmit = () => {
-    if (!file || !note) {
-      alert("Vui lòng nhập đầy đủ thông tin");
+  const handleSubmit = async () => {
+    const amount = Number(withdrawAmount);
+
+    if (!note || !file || !withdrawAmount || isNaN(amount) || amount <= 0) {
+      toast.error("Vui lòng nhập đầy đủ và hợp lệ các thông tin.");
       return;
     }
 
-    // TODO: call API gửi yêu cầu rút tiền
-    console.log("Gửi yêu cầu rút tiền với:", { file, note });
+    try {
+      const uploadRes = await dispatch(uploadFile(file)).unwrap();
+      const senderFileUrl = uploadRes?.data;
+
+      if (!info?.accountID) {
+        toast.error("Không tìm thấy tài khoản người dùng.");
+        return;
+      }
+
+      await dispatch(
+        createApplication({
+          senderID: info.accountID,
+          senderNote: note,
+          senderFileUrl,
+          type: "REQUEST_TO_WITHDRAW",
+          withdrawAmount: amount,
+        })
+      ).unwrap();
+
+      toast.success("Yêu cầu rút tiền đã được gửi thành công.");
+
+      // Reset form
+      setNote("");
+      setFile(null);
+      setWithdrawAmount("");
+      setOpen(false);
+    } catch (error) {
+      console.error("Lỗi gửi yêu cầu rút tiền:", error);
+      toast.error("Gửi yêu cầu thất bại. Vui lòng thử lại sau.");
+    }
   };
 
   return (
@@ -52,7 +92,7 @@ const Wallet = () => {
 
       {info?.role === "Company" && (
         <div className="mt-6">
-          <Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button variant="default">Yêu cầu rút tiền</Button>
             </DialogTrigger>
@@ -63,6 +103,19 @@ const Wallet = () => {
 
               <div className="grid gap-4 py-4">
                 <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">
+                    Số tiền muốn rút
+                  </label>
+                  <Input
+                    type="number"
+                    min={1000}
+                    placeholder="Nhập số tiền (VND)"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">Ghi chú</label>
                   <Textarea
                     placeholder="Nhập ghi chú cho admin"
@@ -70,24 +123,30 @@ const Wallet = () => {
                     onChange={(e) => setNote(e.target.value)}
                   />
                 </div>
+
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">
                     Tập tin đính kèm
                   </label>
                   <Input
                     type="file"
-                    accept="application/pdf,image/*"
+                    accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
+                      if (e.target.files?.[0]) {
                         setFile(e.target.files[0]);
                       }
                     }}
                   />
+                  {file && (
+                    <p className="text-xs text-muted-foreground">{file.name}</p>
+                  )}
                 </div>
               </div>
 
               <DialogFooter>
-                <Button onClick={handleSubmit}>Gửi yêu cầu</Button>
+                <Button onClick={handleSubmit} disabled={loading}>
+                  {loading ? "Đang gửi..." : "Gửi yêu cầu"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
