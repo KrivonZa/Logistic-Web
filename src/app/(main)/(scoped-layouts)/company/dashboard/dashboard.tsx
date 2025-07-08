@@ -1,320 +1,303 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import isAuth from "@/components/isAuth";
 import {
+  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
-  ResponsiveContainer,
+  CartesianGrid,
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { useAppDispatch } from "@/stores";
+import { useDashboard } from "@/hooks/useDashboard";
+import { companyDashboard } from "@/stores/dashboard/thunk";
+import CountUp from "react-countup";
 
-// Mock company review data
-const companyReviewData = [
-  { rating: 5, count: 40 },
-  { rating: 4, count: 25 },
-  { rating: 3, count: 10 },
-  { rating: 2, count: 3 },
-  { rating: 1, count: 2 },
-];
-
-// Dữ liệu doanh thu hàng tháng
-const monthlyRevenueData = [
-  { month: "Jan", revenue: 12000 },
-  { month: "Feb", revenue: 15000 },
-  { month: "Mar", revenue: 14000 },
-  { month: "Apr", revenue: 18000 },
-  { month: "May", revenue: 20000 },
-  { month: "Jun", revenue: 22000 },
-  { month: "Jul", revenue: 21000 },
-  { month: "Aug", revenue: 23000 },
-  { month: "Sep", revenue: 25000 },
-  { month: "Oct", revenue: 27000 },
-  { month: "Nov", revenue: 30000 },
-  { month: "Dec", revenue: 32000 },
-];
-
-// Dữ liệu doanh thu theo tài xế
-const driverRevenueData = [
-  { driver: "Anh Tài", revenue: 10000 },
-  { driver: "Bình", revenue: 8000 },
-  { driver: "Châu", revenue: 9500 },
-  { driver: "Dũng", revenue: 12000 },
-  { driver: "Em", revenue: 11000 },
-];
-
-// Dữ liệu danh sách tài xế
-const allDrivers = [
-  {
-    name: "Anh Tài",
-    revenue: 10000,
-    trips: 120,
-    rating: 4.7,
-    lastActive: "2025-06-01",
-  },
-  {
-    name: "Bình",
-    revenue: 8000,
-    trips: 100,
-    rating: 4.5,
-    lastActive: "2025-06-02",
-  },
-  {
-    name: "Châu",
-    revenue: 9500,
-    trips: 110,
-    rating: 4.6,
-    lastActive: "2025-06-03",
-  },
-  {
-    name: "Dũng",
-    revenue: 12000,
-    trips: 130,
-    rating: 4.8,
-    lastActive: "2025-06-01",
-  },
-  {
-    name: "Em",
-    revenue: 11000,
-    trips: 125,
-    rating: 4.7,
-    lastActive: "2025-06-02",
-  },
-];
-
-// Màu sắc cho biểu đồ Pie
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6"];
 
-const Dashboard = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(allDrivers.length / itemsPerPage);
-  const currentDrivers = allDrivers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+const VIETNAMESE_STATUS: Record<string, string> = {
+  pending: "Chờ xử lý",
+  in_progress: "Đang giao",
+  delivered: "Đã giao",
+  canceled: "Đã huỷ",
+  reject: "Từ chối",
+  unpaid: "Chưa thanh toán",
+  paid: "Đã thanh toán",
+  scheduled: "Đã lên lịch",
+};
 
-  // Calculate summary statistics
-  const totalRevenue = allDrivers.reduce(
-    (sum, driver) => sum + driver.revenue,
-    0
-  );
-  const totalTrips = allDrivers.reduce((sum, driver) => sum + driver.trips, 0);
-  const totalDrivers = allDrivers.length;
-  const averageDriverRating =
-    allDrivers.reduce((sum, driver) => sum + driver.rating, 0) / totalDrivers;
-  const totalCompanyReviews = companyReviewData.reduce(
-    (sum, review) => sum + review.count,
-    0
-  );
-  const averageCompanyRating =
-    companyReviewData.reduce(
-      (sum, review) => sum + review.rating * review.count,
-      0
-    ) / totalCompanyReviews;
+const Dashboard = () => {
+  const dispatch = useAppDispatch();
+  const { loading, company } = useDashboard();
+
+  useEffect(() => {
+    dispatch(companyDashboard());
+  }, []);
+
+  if (loading) return <div className="p-8">Đang tải...</div>;
+  if (!company) return <div className="p-8">Không có dữ liệu</div>;
 
   return (
     <motion.div
       initial={{ y: 40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-screen p-8 bg-white dark:bg-gray-900"
+      className="min-h-screen p-4 md:p-8 bg-white dark:bg-gray-900"
     >
       <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-        Thống kê doanh thu
+        Thống kê doanh nghiệp
       </h2>
 
-      {/* Summary Section */}
-      <div className="w-full max-w-6xl mb-8">
-        <h3 className="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">
+      {/* Tổng quan */}
+      <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-white">
           Tổng quan
         </h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-4">
-              <CardTitle className="text-base font-semibold mb-2">
-                Tổng doanh thu
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tổng tài xế
               </CardTitle>
-              <p className="text-lg font-bold">
-                {totalRevenue.toLocaleString("vi-VN")} VND
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp end={company.totalDrivers} duration={1.2} />
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <CardTitle className="text-base font-semibold mb-2">
-                Tổng số chuyến
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tổng phương tiện
               </CardTitle>
-              <p className="text-lg font-bold">{totalTrips}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp end={company.totalVehicles} duration={1.2} />
+              </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <CardTitle className="text-base font-semibold mb-2">
-                Tổng số tài xế
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tổng đơn
               </CardTitle>
-              <p className="text-lg font-bold">{totalDrivers}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp end={company.totalOrders} duration={1.2} />
+              </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <CardTitle className="text-base font-semibold mb-2">
-                Đánh giá tài xế trung bình
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tổng chuyến đi
               </CardTitle>
-              <p className="text-lg font-bold">{averageDriverRating.toFixed(1)} ⭐</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <CardTitle className="text-base font-semibold mb-2">
-                Tổng đánh giá doanh nghiệp
-              </CardTitle>
-              <p className="text-lg font-bold">{totalCompanyReviews}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <CardTitle className="text-base font-semibold mb-2">
-                Đánh giá doanh nghiệp trung bình
-              </CardTitle>
-              <p className="text-lg font-bold">{averageCompanyRating.toFixed(1)} ⭐</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp end={company.totalTrips} duration={1.2} />
+              </p>
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Biểu đồ doanh thu hàng tháng */}
-        <div>
-          <h3 className="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">
-            Doanh thu hàng tháng
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={monthlyRevenueData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip
-                formatter={(value) => value.toLocaleString("vi-VN") + "₫"}
-              />
-              <Legend />
-              <Bar dataKey="revenue" fill="#3b82f6" name="Doanh thu (₫)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Biểu đồ doanh thu theo tài xế */}
-        <div>
-          <h3 className="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">
-            Doanh thu từng tài xế
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={driverRevenueData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="driver" />
-              <YAxis />
-              <Tooltip
-                formatter={(value) => value.toLocaleString("vi-VN") + "₫"}
-              />
-              <Legend />
-              <Bar dataKey="revenue" fill="#f97316" name="Doanh thu (₫)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Biểu đồ tỷ lệ đóng góp doanh thu */}
-      <div className="mt-12">
-        <h3 className="text-xl font-medium mb-4 text-gray-700 dark:text-gray-300">
-          Tỷ lệ đóng góp doanh thu
-        </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={driverRevenueData}
-              dataKey="revenue"
-              nameKey="driver"
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              fill="#8884d8"
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            >
-              {driverRevenueData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tỉ lệ huỷ chuyến tháng này
+              </CardTitle>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                <CountUp
+                  end={company.percentCanceled}
+                  decimals={1}
+                  suffix="%"
+                  duration={1.2}
                 />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value) => value.toLocaleString("vi-VN") + "₫"}
-            />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tỉ lệ hoàn thành chuyến
+              </CardTitle>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <CountUp
+                  end={company.percentCompletedTrips}
+                  decimals={1}
+                  suffix="%"
+                  duration={1.2}
+                />
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Doanh thu tháng này
+              </CardTitle>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp
+                  end={company.companyRevenueThisMonth}
+                  duration={1.2}
+                  separator=","
+                  suffix="₫"
+                />
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <CardTitle className="text-base font-semibold mb-2 text-gray-500 dark:text-gray-400">
+                Tổng doanh thu
+              </CardTitle>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp
+                  end={company.companyTotalRevenue}
+                  duration={1.2}
+                  separator=","
+                  suffix="₫"
+                />
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Danh sách tài xế dạng card có phân trang */}
-      <div className="w-full max-w-6xl mt-12">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          Danh sách tài xế
-        </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {currentDrivers.map((driver, index) => (
-            <Card key={index} className="w-full">
-              <CardContent className="p-4">
-                <CardTitle className="text-base font-semibold mb-2">
-                  {driver.name}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Doanh thu: {driver.revenue.toLocaleString("vi-VN")} VND
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Số chuyến: {driver.trips}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Đánh giá: ⭐ {driver.rating}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Hoạt động gần nhất: {driver.lastActive}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+      {/* Trạng thái đơn hàng tháng này */}
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          Đơn hàng trong tháng theo trạng thái
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+          {Object.entries(company.orderStatusCountThisMonth || {}).map(
+            ([status, count]) => (
+              <Card key={status}>
+                <CardContent className="p-4 flex flex-col justify-center h-full">
+                  <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {VIETNAMESE_STATUS[status] || status}
+                  </CardTitle>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+                    <CountUp end={count} duration={1.2} />
+                  </p>
+                </CardContent>
+              </Card>
+            )
+          )}
         </div>
+      </div>
 
-        {/* Điều khiển phân trang */}
-        <div className="flex justify-center mt-6 space-x-2">
-          {Array.from({ length: totalPages }, (_, index) => (
-            <button
-              key={index + 1}
-              onClick={() => setCurrentPage(index + 1)}
-              className={`px-4 py-2 rounded-md ${
-                currentPage === index + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {index + 1}
-            </button>
-          ))}
-        </div>
+      {/* Số chuyến theo phương tiện */}
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          Số chuyến theo phương tiện
+        </h3>
+        {company.vehicleTripStatsThisMonth.length === 0 ? (
+          <p>Không có dữ liệu</p>
+        ) : (
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={company.vehicleTripStatsThisMonth}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="vehicleNumber" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="tripCount" fill="#10B981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Số chuyến theo tài xế */}
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          Số chuyến theo tài xế
+        </h3>
+        {company.driverTripStatsThisMonth.length === 0 ? (
+          <p>Không có dữ liệu</p>
+        ) : (
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={company.driverTripStatsThisMonth}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="fullName" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="tripCount" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Doanh thu theo tài xế */}
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          Doanh thu theo tài xế
+        </h3>
+        {company.driverIncomeThisMonth.length === 0 ? (
+          <p>Không có dữ liệu</p>
+        ) : (
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={company.driverIncomeThisMonth}
+                  dataKey="totalIncome"
+                  nameKey="fullName"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  fill="#8884d8"
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {company.driverIncomeThisMonth.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => `${value.toLocaleString("vi-VN")}₫`}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Top tài xế trong tháng */}
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          Top tài xế tháng này (số chuyến nhiều nhất)
+        </h3>
+        {company.topDriverThisMonth.length === 0 ? (
+          <p>Không có dữ liệu</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {company.topDriverThisMonth.map((driver) => (
+              <Card key={driver.driverID}>
+                <CardContent className="p-4">
+                  <CardTitle className="text-base font-semibold mb-2 text-gray-900 dark:text-white">
+                    {driver.fullName}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Số chuyến: {driver.tripCount}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
