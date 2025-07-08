@@ -210,7 +210,7 @@ const ApplicationDetail = () => {
         </Card>
       )}
 
-      {/* Action xử lý */}
+      {/* Action xử lý Application*/}
       {["PENDING", "APPROVED", "REJECTED"].includes(status) && (
         <ApplicationAction
           applicationID={applicationID}
