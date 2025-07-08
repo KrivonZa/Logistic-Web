@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, Users, LogOut, X, ChevronLeft, Wallet } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const sidebarVariants = {
   hidden: { x: -260, opacity: 0 },
@@ -13,7 +13,14 @@ const sidebarVariants = {
   exit: { x: -260, opacity: 0 },
 };
 
-const sidebarLinks = [
+type SidebarLink = {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  roles?: string[]; // optional: if present, only these roles can see it
+};
+
+const allSidebarLinks: SidebarLink[] = [
   {
     href: "/profile",
     icon: <Home className="h-5 w-5" />,
@@ -28,13 +35,26 @@ const sidebarLinks = [
     href: "/wallet",
     icon: <Wallet className="h-5 w-5" />,
     label: "Ví người dùng",
+    roles: ["Company"], // Chỉ hiện nếu role là Company
   },
 ];
 
 const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
-  const pathname = usePathname();
   const router = useRouter();
-  const role = localStorage.getItem("role");
+  const pathname = usePathname();
+
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedRole = localStorage.getItem("role");
+      setRole(storedRole);
+    }
+  }, []);
+
+  const filteredLinks = allSidebarLinks.filter(
+    (link) => !link.roles || (role && link.roles.includes(role))
+  );
 
   const handleLogout = () => {
     localStorage.clear();
@@ -42,12 +62,16 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   };
 
   const handleBack = () => {
+    if (!role) return;
     switch (role) {
       case "Admin":
         router.push("/admin/dashboard");
         break;
       case "Company":
         router.push("/company/dashboard");
+        break;
+      default:
+        router.push("/");
         break;
     }
   };
@@ -79,11 +103,12 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       </div>
 
       <nav className="space-y-2 flex-grow">
-        {sidebarLinks.map((link) => {
+        {filteredLinks.map((link) => {
           const isActive =
             (link.href === "/profile" &&
               ["/profile", "/edit-profile"].includes(pathname)) ||
             pathname === link.href;
+
           return (
             <Link
               key={link.href}
@@ -98,6 +123,7 @@ const Sidebar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           );
         })}
       </nav>
+
       <button
         onClick={handleLogout}
         className="mt-auto flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-red-600 transition duration-200"

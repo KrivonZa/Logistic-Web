@@ -124,3 +124,15 @@ export const getDriver = createAsyncThunk(
     }
   }
 );
+
+export const updateAccount = createAsyncThunk(
+  "account/update",
+  async (formData: FormData, { rejectWithValue }) => {
+    try {
+      const response = await manageAccount.updateAccount(formData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue("Không thành công.");
+    }
+  }
+);

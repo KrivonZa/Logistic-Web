@@ -53,53 +53,51 @@ const UserProfile = () => {
   );
 
   const renderDetailFields = () => {
-    if (!info?.role || !info.detail) return null;
+    if (!info?.role) return null;
 
-    switch (info.role) {
-      case "Company": {
-        const detail = info.detail as CompanyDetail;
+    const role = info.role;
 
-        return (
-          <>
-            <Field label="Tên công ty" value={info?.fullName ?? ""} />
-            <Field label="Mã số thuế" value={detail.taxCode ?? ""} />
-            <Field
-              label="Người đại diện hợp pháp"
-              value={detail.legalRep ?? ""}
-            />
-            <Field label="Email liên hệ" value={info?.email ?? ""} />
-            <Field label="Số điện thoại" value={detail.phoneNumber ?? ""} />
-            <Field label="Địa chỉ" value={detail.address ?? ""} />
-            <Field label="Ngân hàng" value={detail.bankName ?? ""} />
-            <Field label="Số tài khoản" value={detail.bankAccount ?? ""} />
-            <LinkField
-              label="Giấy phép kinh doanh"
-              url={detail.license ?? ""}
-            />
-            <Field
-              label="Cập nhật lần cuối"
-              value={
-                detail.updatedAt
-                  ? new Date(detail.updatedAt).toLocaleDateString("vi-VN")
-                  : ""
-              }
-            />
-          </>
-        );
-      }
-
-      case "Admin":
-        return (
-          <>
-            <Field label="Vai trò" value="Quản trị viên hệ thống" />
-            <Field label="Họ và tên" value={info?.fullName ?? ""} />
-            <Field label="Email" value={info?.email ?? ""} />
-          </>
-        );
-
-      default:
-        return null;
+    if (role === "Admin") {
+      return (
+        <>
+          <Field label="Vai trò" value="Quản trị viên hệ thống" />
+          <Field label="Họ và tên" value={info.fullName ?? ""} />
+          <Field label="Email" value={info.email ?? ""} />
+        </>
+      );
     }
+
+    if (role === "Company") {
+      const detail = info.detail as CompanyDetail;
+      if (!detail) return null;
+
+      return (
+        <>
+          <Field label="Tên công ty" value={info.fullName ?? ""} />
+          <Field label="Mã số thuế" value={detail.taxCode ?? ""} />
+          <Field
+            label="Người đại diện hợp pháp"
+            value={detail.legalRep ?? ""}
+          />
+          <Field label="Email liên hệ" value={info.email ?? ""} />
+          <Field label="Số điện thoại" value={detail.phoneNumber ?? ""} />
+          <Field label="Địa chỉ" value={detail.address ?? ""} />
+          <Field label="Ngân hàng" value={detail.bankName ?? ""} />
+          <Field label="Số tài khoản" value={detail.bankAccount ?? ""} />
+          <LinkField label="Giấy phép kinh doanh" url={detail.license ?? ""} />
+          <Field
+            label="Cập nhật lần cuối"
+            value={
+              detail.updatedAt
+                ? new Date(detail.updatedAt).toLocaleDateString("vi-VN")
+                : ""
+            }
+          />
+        </>
+      );
+    }
+
+    return null;
   };
 
   return (

@@ -6,6 +6,7 @@ import {
   getCompany,
   getDriver,
   updateStatus,
+  updateAccount,
 } from "./thunk";
 import { Account, Driver, AccountWithRoleDetail } from "@/types/account";
 
@@ -111,6 +112,15 @@ export const manageAccountSlice = createSlice({
         state.loading = false;
       })
       .addCase(updateStatus.rejected, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateAccount.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateAccount.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateAccount.rejected, (state) => {
         state.loading = false;
       });
   },

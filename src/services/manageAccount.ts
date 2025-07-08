@@ -25,4 +25,10 @@ export const manageAccount = {
     page: number;
     limit: number;
   }) => api.get(`/account/company/filter`, { params }),
+  updateAccount: (formData: FormData) =>
+    api.patch(`/account`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
 };

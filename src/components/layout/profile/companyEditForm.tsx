@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -8,8 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import EditableAvatar from "./editableAvatar";
+import { useAppDispatch } from "@/stores";
+import { updateAccount } from "@/stores/accountManager/thunk";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-// Zod schema
+// 🧩 Zod schema (license không bắt buộc)
 const formSchema = z.object({
   companyName: z.string().min(2, "Tên doanh nghiệp tối thiểu 2 ký tự"),
   taxCode: z.string().min(10, "Mã số thuế không hợp lệ"),
@@ -18,17 +22,12 @@ const formSchema = z.object({
   phoneNumber: z.string().min(8, "Số điện thoại không hợp lệ"),
   address: z.string().min(5, "Địa chỉ quá ngắn"),
   bankName: z.string().min(1, "Vui lòng chọn ngân hàng"),
-  bankAccount: z.string().min(12, "Số tài khoản không hợp lệ"),
-  license: z
-    .instanceof(File, { message: "Vui lòng tải lên giấy phép" })
-    .refine((file) => file.size > 0, {
-      message: "Tệp không được để trống",
-    }),
+  bankAccount: z.string().min(10, "Số tài khoản không hợp lệ"),
+  license: z.instanceof(File).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-// ✅ Define type for `info` prop
 interface CompanyDetail {
   taxCode: string;
   legalRep: string;
@@ -36,6 +35,7 @@ interface CompanyDetail {
   address: string;
   bankName: string;
   bankAccount: string;
+  license?: string;
 }
 
 interface CompanyInfo {
@@ -50,8 +50,14 @@ interface Props {
 }
 
 export default function CompanyEditForm({ info }: Props) {
-  const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const avatarFileRef = useRef<File | null>(null);
+
+  const [avatar, setAvatar] = useState<string | null>(info.avatar || null);
+  const [currentLicenseUrl, setCurrentLicenseUrl] = useState<string | null>(
+    info.detail?.license || null
+  );
 
   const {
     register,
@@ -63,28 +69,52 @@ export default function CompanyEditForm({ info }: Props) {
   });
 
   useEffect(() => {
-    const detail = info.detail;
+    const d = info.detail;
     setValue("companyName", info.fullName || "");
-    setValue("taxCode", detail?.taxCode || "");
-    setValue("legalRep", detail?.legalRep || "");
+    setValue("taxCode", d?.taxCode || "");
+    setValue("legalRep", d?.legalRep || "");
     setValue("email", info.email || "");
-    setValue("phoneNumber", detail?.phoneNumber || "");
-    setValue("address", detail?.address || "");
-    setValue("bankName", detail?.bankName || "");
-    setValue("bankAccount", detail?.bankAccount || "");
+    setValue("phoneNumber", d?.phoneNumber || "");
+    setValue("address", d?.address || "");
+    setValue("bankName", d?.bankName || "");
+    setValue("bankAccount", d?.bankAccount || "");
     setAvatar(info.avatar || null);
+    setCurrentLicenseUrl(d?.license || null);
   }, [info, setValue]);
 
-  const onSubmit = (data: FormData) => {
-    console.log("📝 Company form submitted:", {
-      ...data,
-      avatarFile: avatarFileRef.current,
-    });
-    alert("Lưu thành công!");
+  const onSubmit = async (data: FormData) => {
+    try {
+      const formData = new FormData();
+      formData.append("fullName", data.companyName);
+      formData.append("email", data.email);
+
+      formData.append("company[taxCode]", data.taxCode);
+      formData.append("company[legalRep]", data.legalRep);
+      formData.append("company[phoneNumber]", data.phoneNumber);
+      formData.append("company[address]", data.address);
+      formData.append("company[bankName]", data.bankName);
+      formData.append("company[bankAccount]", data.bankAccount);
+
+      if (data.license) {
+        formData.append("company[license]", data.license);
+      }
+
+      if (avatarFileRef.current) {
+        formData.append("file", avatarFileRef.current);
+      }
+
+      await dispatch(updateAccount(formData)).unwrap();
+      toast.success("✅ Cập nhật thành công!");
+      router.push("/profile");
+    } catch (err) {
+      console.error("❌ Update failed:", err);
+      toast.error("Cập nhật thất bại. Vui lòng thử lại.");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* Avatar */}
       <EditableAvatar
         name={info.fullName}
         avatarUrl={avatar ?? undefined}
@@ -94,7 +124,7 @@ export default function CompanyEditForm({ info }: Props) {
         }}
       />
 
-      {/* Render input fields */}
+      {/* Input fields */}
       {[
         { label: "Tên doanh nghiệp", name: "companyName" },
         { label: "Mã số thuế", name: "taxCode" },
@@ -120,7 +150,7 @@ export default function CompanyEditForm({ info }: Props) {
         </div>
       ))}
 
-      {/* License file upload */}
+      {/* License preview + upload */}
       <div className="space-y-1.5">
         <Label htmlFor="license">Giấy phép kinh doanh</Label>
         <Input
@@ -129,7 +159,9 @@ export default function CompanyEditForm({ info }: Props) {
           accept="application/pdf,image/*"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) setValue("license", file);
+            if (file) {
+              setValue("license", file, { shouldValidate: true });
+            }
           }}
         />
         {errors.license && (
@@ -137,6 +169,7 @@ export default function CompanyEditForm({ info }: Props) {
         )}
       </div>
 
+      {/* Submit button */}
       <div className="flex justify-end pt-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}

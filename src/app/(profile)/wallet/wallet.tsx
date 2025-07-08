@@ -97,4 +97,4 @@ const Wallet = () => {
   );
 };
 
-export default isAuth(Wallet, ["Admin", "Company"]);
+export default isAuth(Wallet, ["Company"]);
