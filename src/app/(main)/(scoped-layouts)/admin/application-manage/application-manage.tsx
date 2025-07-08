@@ -73,9 +73,19 @@ const ApplicationManage = () => {
   const totalPages = Math.ceil(total / (allApplication?.limit || LIMIT));
 
   useEffect(() => {
-    const params: any = { page, limit: LIMIT };
+    const params: {
+      page: number;
+      limit: number;
+      applicationStatus?: string;
+      applicationType?: string;
+    } = {
+      page,
+      limit: LIMIT,
+    };
+
     if (status !== "all") params.applicationStatus = status;
     if (type !== "all") params.applicationType = type;
+
     console.log(params);
     dispatch(viewAllApplication(params));
   }, [dispatch, status, type, page]);
