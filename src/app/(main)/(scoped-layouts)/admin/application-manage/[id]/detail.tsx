@@ -215,6 +215,7 @@ const ApplicationDetail = () => {
         <ApplicationAction
           applicationID={applicationID}
           status={status as "PENDING" | "APPROVED" | "REJECTED"}
+          applicationType={applicationDetail.type}
           fullName={sender.fullName}
           onReload={reload}
         />
