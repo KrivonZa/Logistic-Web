@@ -116,11 +116,7 @@ const RegisterBusiness = () => {
       setTimeout(() => {
         router.push("/login");
       }, 10000);
-    } catch (error) {
-      toast.error("Lỗi đăng ký", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    }
+    } catch {}
   };
 
   return (

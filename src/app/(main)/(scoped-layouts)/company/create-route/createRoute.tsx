@@ -114,11 +114,7 @@ const CreateRoute = () => {
         },
       });
       setSuggestions(res.data.predictions);
-    } catch (error) {
-      toast.error("Lỗi khi lấy gợi ý", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    }
+    } catch {}
   }, 300);
 
   useEffect(() => {
@@ -248,11 +244,7 @@ const CreateRoute = () => {
       );
 
       mapRef.current.fitBounds(bounds, { padding: 60 });
-    } catch (err) {
-      toast.error("Lỗi khi vẽ route", {
-        description: err instanceof Error ? err.message : String(err),
-      });
-    }
+    } catch {}
   };
 
   const addWaypoint = (lat: number, lng: number, name: string) => {
@@ -284,11 +276,7 @@ const CreateRoute = () => {
       addWaypoint(lat, lng, desc);
       setSearchQuery("");
       setSuggestions([]);
-    } catch (err) {
-      toast.error("Lỗi khi lấy chi tiết địa điểm", {
-        description: err instanceof Error ? err.message : String(err),
-      });
-    }
+    } catch {}
   };
 
   const handleDragEnd = (event: DragEndEvent) => {

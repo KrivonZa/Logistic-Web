@@ -89,10 +89,7 @@ const RouteManagement = () => {
           }
         );
         setSuggestions(res.data.predictions || []);
-      } catch (error) {
-        toast.error("Lỗi gợi ý", {
-          description: error instanceof Error ? error.message : String(error),
-        });
+      } catch {
         setSuggestions([]);
       }
     }, 300),
@@ -172,7 +169,6 @@ const RouteManagement = () => {
       });
 
       if (validWaypoints.length < 2) {
-        toast.error("Không có đủ điểm phù hợp để vẽ đường đi");
         return;
       }
 
@@ -226,7 +222,6 @@ const RouteManagement = () => {
 
           const route = res.data.routes?.[0];
           if (!route) {
-            toast.error("Không tìm thấy route");
             return coords;
           }
 
@@ -239,7 +234,6 @@ const RouteManagement = () => {
       );
 
       if (allCoords.length === 0) {
-        toast.error("Không có tọa độ để tạo route");
         return;
       }
 
@@ -283,11 +277,7 @@ const RouteManagement = () => {
         return b.extend([lng, lat]);
       }, new goongMap.LngLatBounds(JSON.parse(validWaypoints[0].geoLocation).coordinates, JSON.parse(validWaypoints[0].geoLocation).coordinates));
       mapRef.current.fitBounds(bounds, { padding: 80, maxZoom: 15 });
-    } catch (error) {
-      toast.error("Lỗi trong việc vẽ route", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    }
+    } catch {}
   }, [goongMap, mapRef, selectedRoute, pendingWaypoints, goongApiKey]);
 
   useEffect(() => {
@@ -347,7 +337,6 @@ const RouteManagement = () => {
       setIsUpdateNeeded(false);
       setIsSidebarOpen(false);
     } else {
-      toast.error("Tuyến đường không phù hợp");
       setSelectedRoute(null);
       setPendingWaypoints([]);
       setIsUpdateNeeded(false);

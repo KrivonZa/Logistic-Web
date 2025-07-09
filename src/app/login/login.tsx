@@ -64,11 +64,7 @@ export default function Login() {
           });
           break;
       }
-    } catch (err) {
-      toast.error("Đăng nhập thất bại", {
-        description: err instanceof Error ? err.message : String(err),
-      });
-    }
+    } catch {}
   };
 
   const handleGoogleSignIn = async () => {
@@ -89,11 +85,7 @@ export default function Login() {
           });
           break;
       }
-    } catch (err) {
-      toast.error("Đăng nhập thất bại", {
-        description: err instanceof Error ? err.message : String(err),
-      });
-    }
+    } catch {}
   };
 
   return (

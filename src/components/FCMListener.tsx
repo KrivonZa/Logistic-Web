@@ -17,7 +17,6 @@ export default function FCMListener() {
       try {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
-          toast.warning("Thông báo bị chặn");
           return;
         }
 
@@ -48,11 +47,7 @@ export default function FCMListener() {
           const audio = new Audio("/notification.mp3");
           audio.play().catch(() => {});
         });
-      } catch (error) {
-        toast.error("Cấu trúc FCM lỗi", {
-          description: error instanceof Error ? error.message : String(error),
-        });
-      }
+      } catch {}
     };
 
     setupFCM();
