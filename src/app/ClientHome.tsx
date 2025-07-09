@@ -57,7 +57,7 @@ export default function ClientHome() {
             router.replace("/login");
             break;
         }
-      } catch (err) {
+      } catch {
         toast.error("Phiên đăng nhập đã hết hạn hoặc không hợp lệ", {
           description: "Vui lòng đăng nhập lại.",
           duration: 3000,
