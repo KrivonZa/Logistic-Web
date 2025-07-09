@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  getMessaging,
-  getToken,
-  isSupported,
-  onMessage,
-} from "firebase/messaging";
+import { getMessaging, isSupported, onMessage } from "firebase/messaging";
+// import {
+//   getMessaging,
+//   getToken,
+//   isSupported,
+//   onMessage,
+// } from "firebase/messaging";
 import { toast } from "sonner";
 import { app } from "@/lib/firebase-app";
 
