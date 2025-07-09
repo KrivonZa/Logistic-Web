@@ -60,7 +60,9 @@ export default function AdminEditForm({ info }: Props) {
       toast.success("Cập nhật thành công!");
       router.push("/profile");
     } catch (err) {
-      console.error("❌ Update failed:", err);
+      toast.error("Cập nhật thất bại", {
+        description: err instanceof Error ? err.message : String(err),
+      });
       toast.error("Đã xảy ra lỗi khi cập nhật.");
     } finally {
       setSubmitting(false);

@@ -65,7 +65,9 @@ export default function Login() {
           break;
       }
     } catch (err) {
-      console.error("Login failed:", err);
+      toast.error("Đăng nhập thất bại", {
+        description: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 
@@ -88,7 +90,9 @@ export default function Login() {
           break;
       }
     } catch (err) {
-      console.error("Login failed:", err);
+      toast.error("Đăng nhập thất bại", {
+        description: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 

@@ -67,7 +67,6 @@ const Wallet = () => {
       setWithdrawAmount("");
       setOpen(false);
     } catch (error) {
-      console.error("Lỗi gửi yêu cầu rút tiền:", error);
       toast.error("Gửi yêu cầu thất bại. Vui lòng thử lại sau.");
     }
   };

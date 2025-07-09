@@ -16,26 +16,21 @@ export default function FCMListener() {
       try {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
-          console.warn("🚫 Notification permission denied");
+          toast.warning("Thông báo bị chặn");
           return;
         }
 
         const supported = await isSupported();
         if (!supported) {
-          console.warn("🚫 FCM is not supported in this browser");
+          toast.warning("Thông báo không được hỗ trợ trên trình duyệt này");
           return;
         }
 
         const messaging = getMessaging(app);
 
         const token = await getToken(messaging, {
-          vapidKey:
-            process.env.NEXT_PUBLIC_FIREBASE_VAPID_ID,
+          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_ID,
         });
-
-        if (token) {
-          console.log("✅ FCM Token:", token);
-        }
 
         onMessage(messaging, (payload) => {
           const title = payload?.notification?.title || "Bạn có thông báo mới";
@@ -53,7 +48,9 @@ export default function FCMListener() {
           audio.play().catch(() => {});
         });
       } catch (error) {
-        console.error("❌ FCM setup error:", error);
+        toast.error("Cấu trúc FCM lỗi", {
+          description: error instanceof Error ? error.message : String(error),
+        });
       }
     };
 

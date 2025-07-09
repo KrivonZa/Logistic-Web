@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 import { useAppDispatch } from "@/stores";
 import { useBank } from "@/hooks/useBank";
@@ -116,7 +117,9 @@ const RegisterBusiness = () => {
         router.push("/login");
       }, 10000);
     } catch (error) {
-      console.error("Lỗi đăng ký:", error);
+      toast.error("Lỗi đăng ký", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 

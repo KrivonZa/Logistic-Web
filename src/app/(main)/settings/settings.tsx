@@ -150,7 +150,6 @@ const Settings = () => {
                   variant="ghost"
                   className="w-full flex items-center justify-between px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-colors duration-200"
                   onClick={() => {
-                    console.log("Chuyển hướng đến trang chỉnh sửa hồ sơ");
                     router.push("/profile");
                   }}
                 >

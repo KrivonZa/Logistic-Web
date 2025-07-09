@@ -22,7 +22,6 @@ import CountUp from "react-countup";
 const Dashboard = () => {
   const dispatch = useAppDispatch();
   const { loading, admin } = useDashboard();
-  console.log(admin)
 
   useEffect(() => {
     dispatch(adminDashboard());

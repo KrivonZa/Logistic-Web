@@ -39,8 +39,6 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      console.log("[Auth Debug] Token expired, logging out...");
-
       if (authContext) {
         authContext.setUser(null);
         authContext.router.push("/login");

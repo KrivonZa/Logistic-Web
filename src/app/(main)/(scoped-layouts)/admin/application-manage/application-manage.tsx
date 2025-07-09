@@ -86,7 +86,6 @@ const ApplicationManage = () => {
     if (status !== "all") params.applicationStatus = status;
     if (type !== "all") params.applicationType = type;
 
-    console.log(params);
     dispatch(viewAllApplication(params));
   }, [dispatch, status, type, page]);
 

@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import debounce from "lodash/debounce";
 import axios from "axios";
 import polyline from "@mapbox/polyline";
+import { toast } from "sonner";
 
 import {
   DndContext,
@@ -114,7 +115,9 @@ const CreateRoute = () => {
       });
       setSuggestions(res.data.predictions);
     } catch (error) {
-      console.error("Lỗi khi lấy gợi ý:", error);
+      toast.error("Lỗi khi lấy gợi ý", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     }
   }, 300);
 
@@ -246,7 +249,9 @@ const CreateRoute = () => {
 
       mapRef.current.fitBounds(bounds, { padding: 60 });
     } catch (err) {
-      console.error("Lỗi khi vẽ route:", err);
+      toast.error("Lỗi khi vẽ route", {
+        description: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 
@@ -280,7 +285,9 @@ const CreateRoute = () => {
       setSearchQuery("");
       setSuggestions([]);
     } catch (err) {
-      console.error("Lỗi khi lấy chi tiết địa điểm:", err);
+      toast.error("Lỗi khi lấy chi tiết địa điểm", {
+        description: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 
@@ -303,9 +310,10 @@ const CreateRoute = () => {
     };
     try {
       const result = await dispatch(createRoutes(payload)).unwrap();
-      console.log("Route created:", result);
     } catch (err) {
-      console.error("Tạo route thất bại:", err);
+      toast.error("Tạo route thất bại", {
+        description: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 

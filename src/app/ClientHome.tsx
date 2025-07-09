@@ -58,7 +58,9 @@ export default function ClientHome() {
             break;
         }
       } catch (err) {
-        console.error("Failed to fetch profile or invalid token:", err);
+        toast.error("Lỗi trong việc lấy profile hoặc token không phù hợp", {
+          description: err instanceof Error ? err.message : String(err),
+        });
         toast.error("Phiên đăng nhập đã hết hạn hoặc không hợp lệ", {
           description: "Vui lòng đăng nhập lại.",
           duration: 3000,

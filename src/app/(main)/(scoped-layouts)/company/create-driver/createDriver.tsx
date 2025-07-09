@@ -76,8 +76,7 @@ const CreateDriver = () => {
       toast.success("Gửi đơn thành công!");
       setFile(null);
       setSenderNote("");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Gửi đơn thất bại");
     }
   };

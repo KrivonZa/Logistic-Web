@@ -44,6 +44,7 @@ import { Routes, Waypoint } from "@/types/route";
 import debounce from "lodash/debounce";
 import goong, { Map, Marker } from "@goongmaps/goong-js";
 import type { FeatureCollection } from "geojson";
+import { toast } from "sonner";
 
 const RouteManagement = () => {
   const [selectedRoute, setSelectedRoute] = useState<Routes | null>(null);
@@ -89,7 +90,9 @@ const RouteManagement = () => {
         );
         setSuggestions(res.data.predictions || []);
       } catch (error) {
-        console.error("Error fetching place suggestions:", error);
+        toast.error("Lỗi gợi ý", {
+          description: error instanceof Error ? error.message : String(error),
+        });
         setSuggestions([]);
       }
     }, 300),
@@ -169,7 +172,7 @@ const RouteManagement = () => {
       });
 
       if (validWaypoints.length < 2) {
-        console.warn("Not enough valid waypoints to draw route");
+        toast.error("Không có đủ điểm phù hợp để vẽ đường đi");
         return;
       }
 
@@ -223,7 +226,7 @@ const RouteManagement = () => {
 
           const route = res.data.routes?.[0];
           if (!route) {
-            console.warn(`No route found from point ${i} to ${i + 1}`);
+            toast.error("Không tìm thấy route");
             return coords;
           }
 
@@ -236,23 +239,23 @@ const RouteManagement = () => {
       );
 
       if (allCoords.length === 0) {
-        console.warn("No coordinates to draw route");
+        toast.error("Không có tọa độ để tạo route");
         return;
       }
 
       const geoJSON: FeatureCollection = {
-              type: "FeatureCollection",
-              features: [
-                {
-                  type: "Feature",
-                  geometry: {
-                    type: "LineString",
-                    coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
-                  },
-                  properties: {},
-                },
-              ],
-            };
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: allCoords.map(([lat, lng]) => [lng, lat]),
+            },
+            properties: {},
+          },
+        ],
+      };
 
       mapRef.current.addSource("route", {
         type: "geojson",
@@ -281,7 +284,9 @@ const RouteManagement = () => {
       }, new goongMap.LngLatBounds(JSON.parse(validWaypoints[0].geoLocation).coordinates, JSON.parse(validWaypoints[0].geoLocation).coordinates));
       mapRef.current.fitBounds(bounds, { padding: 80, maxZoom: 15 });
     } catch (error) {
-      console.error("Error drawing route:", error);
+      toast.error("Lỗi trong việc vẽ route", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     }
   }, [goongMap, mapRef, selectedRoute, pendingWaypoints, goongApiKey]);
 
@@ -327,8 +332,9 @@ const RouteManagement = () => {
         setNewLocation("");
         setSuggestions([]);
       } catch (error) {
-        console.error("Error adding location:", error);
-        alert("Unable to add location. Please try again.");
+        toast.error("Lỗi thêm tuyến đường", {
+          description: error instanceof Error ? error.message : String(error),
+        });
       }
     },
     [goongApiKey, selectedRoute, pendingWaypoints]
@@ -341,7 +347,7 @@ const RouteManagement = () => {
       setIsUpdateNeeded(false);
       setIsSidebarOpen(false);
     } else {
-      console.warn("Invalid route:", route);
+      toast.error("Tuyến đường không phù hợp");
       setSelectedRoute(null);
       setPendingWaypoints([]);
       setIsUpdateNeeded(false);
@@ -701,9 +707,7 @@ const RouteManagement = () => {
                                 4
                               )}, ${geo.coordinates[0].toFixed(4)})`;
                             } catch {
-                              console.warn(
-                                `Invalid coordinates for waypoint ${wp.waypointID}`
-                              );
+                              toast.error("Lỗi tọa độ");
                             }
                             return (
                               <li
