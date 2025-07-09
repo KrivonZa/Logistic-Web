@@ -28,9 +28,9 @@ export default function FCMListener() {
 
         const messaging = getMessaging(app);
 
-        const token = await getToken(messaging, {
-          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_ID,
-        });
+        // const token = await getToken(messaging, {
+        //   vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_ID,
+        // });
 
         onMessage(messaging, (payload) => {
           const title = payload?.notification?.title || "Bạn có thông báo mới";

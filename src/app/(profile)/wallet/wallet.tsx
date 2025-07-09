@@ -66,7 +66,7 @@ const Wallet = () => {
       setFile(null);
       setWithdrawAmount("");
       setOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Gửi yêu cầu thất bại. Vui lòng thử lại sau.");
     }
   };

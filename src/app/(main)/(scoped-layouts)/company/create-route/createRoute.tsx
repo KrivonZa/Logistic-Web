@@ -309,7 +309,7 @@ const CreateRoute = () => {
       waypoints,
     };
     try {
-      const result = await dispatch(createRoutes(payload)).unwrap();
+      await dispatch(createRoutes(payload)).unwrap();
     } catch (err) {
       toast.error("Tạo route thất bại", {
         description: err instanceof Error ? err.message : String(err),
