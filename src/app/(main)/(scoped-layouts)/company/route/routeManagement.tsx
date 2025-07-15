@@ -534,7 +534,7 @@ const RouteManagement = () => {
                                 ? "default"
                                 : "ghost"
                             }
-                            className={`w-full justify-start text-left py-4 px-4 rounded-lg border transition-colors ${
+                            className={`w-full text-left py-4 px-4 rounded-lg border transition-colors items-start min-h-fit ${
                               selectedRoute?.routeID === route.routeID
                                 ? "bg-blue-100 border-blue-400"
                                 : "hover:bg-blue-50"
@@ -543,7 +543,7 @@ const RouteManagement = () => {
                           >
                             <div className="flex items-start gap-3 w-full">
                               <MapPin className="h-5 w-5 text-blue-500 mt-1 shrink-0" />
-                              <div className="flex-1 break-words text-base font-medium leading-snug overflow-hidden whitespace-nowrap text-ellipsis">
+                              <div className="flex-1 break-words text-base font-medium leading-snug whitespace-normal">
                                 {route.routeName}
                               </div>
                             </div>
