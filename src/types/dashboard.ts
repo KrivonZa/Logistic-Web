@@ -56,4 +56,13 @@ export interface AdminDashboardResponse {
   companyRevenues: CompanyRevenue[];
   topCompaniesByRevenue: CompanyRevenue[];
   topCompaniesByDeliveryCount: TopCompanyDelivery[];
+  averageRating: number;
+  latestRatings: {
+    ratingID: string;
+    accountID: string;
+    fullName: string;
+    stars: number;
+    content: string;
+    createdAt: string;
+  }[];
 }

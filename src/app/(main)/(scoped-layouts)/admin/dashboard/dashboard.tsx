@@ -203,6 +203,49 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          Điểm đánh giá trung bình
+        </h3>
+        <div className="text-3xl font-bold text-yellow-500">
+          <CountUp
+            end={admin.averageRating}
+            duration={1.2}
+            decimals={1}
+            suffix="/5"
+          />
+        </div>
+      </div>
+
+      {/* 3 đánh giá gần nhất */}
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+          3 đánh giá gần nhất
+        </h3>
+        <div className="space-y-4">
+          {admin.latestRatings.map((rating) => (
+            <div
+              key={rating.ratingID}
+              className="p-4 rounded-lg bg-gray-100 dark:bg-gray-800 shadow"
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {rating.fullName}
+                </span>
+                <span className="text-yellow-500 font-bold">
+                  {rating.stars} ★
+                </span>
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                {rating.content}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(rating.createdAt).toLocaleString("vi-VN")}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </motion.div>
   );
 };
