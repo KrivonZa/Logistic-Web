@@ -110,6 +110,17 @@ const Dashboard = () => {
           <Card>
             <CardContent className="p-4">
               <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Đánh giá trung bình
+              </CardTitle>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CountUp end={admin.averageRating} duration={1.2} />
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Tổng đơn đăng ký
               </CardTitle>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -201,19 +212,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-      </div>
-      <div className="mb-12">
-        <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
-          Điểm đánh giá trung bình
-        </h3>
-        <div className="text-3xl font-bold text-yellow-500">
-          <CountUp
-            end={admin.averageRating}
-            duration={1.2}
-            decimals={1}
-            suffix="/5"
-          />
         </div>
       </div>
 
